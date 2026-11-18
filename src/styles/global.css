@@ -846,19 +846,22 @@ body::before {
 }
 /* Boxes: the lines cross the widget, so its inner edges can be read against them. */
 :root[data-grid="boxes"] body::before { z-index: 30; }
-/* Always present so the colour can ease both ways; transparent until "boxes". Focus rings keep their own outline. */
-main *:not(:focus-visible) {
-  outline: 0.5px solid var(--grid-box);
-  outline-offset: -0.5px;
+/* Always present so the colour can ease both ways; transparent until "boxes". In the base layer, so any outline a
+   part or utility sets (a focus ring on a row or a choice) wins over it. */
+@layer base {
+  main *:not(:focus-visible) {
+    outline: 0.5px solid var(--grid-box);
+    outline-offset: -0.5px;
+  }
+  /* Forced colours paint a transparent outline: outside Boxes, draw none. */
+  @media (forced-colors: active) {
+    :root:not([data-grid="boxes"]) main *:not(:focus-visible) { outline: none; }
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   body::before, :root[data-grid] body::before { clip-path: none; transition: opacity 140ms ease-out; }
 }
 :root[data-motion="reduce"] body::before { clip-path: none; transition: opacity 140ms ease-out; }
-/* A transparent outline is painted in forced colours: outside Boxes, hand the outline back to the layers above. */
-@media (forced-colors: active) {
-  :root:not([data-grid="boxes"]) main *:not(:focus-visible) { outline: revert-layer; outline-offset: revert-layer; }
-}
 
 /* Stage chrome: the four bars ([data-stage-chrome], and [data-stage-controls] top right) and their popups. Quieter
    than the chart, no motion, and gone with H or ?clean (data-chrome="off"). Every control is 32px (40 on touch, below),
