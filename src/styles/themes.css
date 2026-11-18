@@ -1,0 +1,38 @@
+/*
+ * Brand themes. Set data-theme="<id>" on <html> (Layout's `theme` prop does it).
+ * A theme overrides brand tokens only: primary, ring, chart palette, radius, typefaces.
+ * Everything else (surfaces, borders, components) stays shared.
+ * `:root[...]` beats the base `:root` and `.dark` blocks regardless of source order.
+ * Register new ids in src/lib/themes.ts.
+ */
+
+:root[data-theme="harbour"] {
+  --primary: oklch(0.45 0.09 230);
+  --primary-foreground: oklch(0.98 0.01 230);
+  --ring: oklch(0.6 0.09 230);
+  --radius: 1rem;
+  --chart-1: oklch(0.38 0.08 240);
+  --chart-2: oklch(0.5 0.1 225);
+  --chart-3: oklch(0.62 0.1 205);
+  --chart-4: oklch(0.74 0.09 190);
+  --chart-5: oklch(0.85 0.06 180);
+}
+
+:root[data-theme="signal"] {
+  --primary: oklch(0.22 0.02 270);
+  --primary-foreground: oklch(0.97 0.02 90);
+  --ring: oklch(0.78 0.16 75);
+  --radius: 0rem;
+  --brand-font-data: var(--brand-font-mono);
+  --chart-1: oklch(0.78 0.16 75);
+  --chart-2: oklch(0.25 0.02 270);
+  --chart-3: oklch(0.55 0.02 270);
+  --chart-4: oklch(0.86 0.1 85);
+  --chart-5: oklch(0.72 0.01 270);
+}
+
+:root.dark[data-theme="signal"] {
+  --primary: oklch(0.78 0.16 75);
+  --primary-foreground: oklch(0.22 0.02 270);
+  --chart-2: oklch(0.92 0.01 270);
+}
