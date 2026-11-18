@@ -1,0 +1,18 @@
+/*
+ * Row 04's two SVG classes. They move to kit.css with parts.tsx.
+ */
+
+/* A series draws in left to right, x being time: the kit's viz-wipe keyframes on the kit's curve, not in steps.
+   It is a CSS animation, so the frame can finish it and the stage can pace it; reduced motion lands it at once. */
+.viz-draw {
+  animation: viz-wipe var(--viz-dur, 700ms) var(--viz-ease) var(--viz-delay, 0ms) both;
+}
+
+/* A point fills with --px; data-dim fades it toward the paper, as the kit's px-cell does for HTML cells. */
+.viz-point {
+  fill: var(--px);
+  transition: fill 150ms var(--viz-ease);
+}
+.viz-point[data-dim] {
+  fill: color-mix(in oklch, var(--px) 22%, var(--viz-paper));
+}
