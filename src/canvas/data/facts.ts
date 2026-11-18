@@ -1,6 +1,6 @@
 // The numbers the charts draw, and the rules that turn them into cells, bars and fills, in one place so
 // facts.check.mjs can test that what is drawn matches what is said. Plain TypeScript with no imports: Node runs it.
-// Every number is from the deck.
+// Rows 01 to 03 draw the deck's numbers. Rows 04 onward draw DEMO, a made-up story built to agree with them.
 
 export const pct = (n: number) => `${Math.round(n)}%`
 export const sec = (n: number) => `${n.toFixed(1)}s`
@@ -118,3 +118,43 @@ export const FIELD = (() => {
   }
   return STAGE_X.map((_, i) => cells.filter((c) => c.stage === i))
 })()
+
+/**
+ * DEMO: one made-up story for the charts after row 03, built so it agrees with every number above. The story:
+ * a docs platform over six months, December 2025 to May 2026 (the readouts are dated 26 May, Q2 2026). Agents read
+ * nine times as much in May as in December while people read about the same, so by May agents are 62% of 48M monthly
+ * page views and answers come in 0.8s. New charts draw from here, or derive from it, and facts.check.mjs proves the
+ * agreement. Add a number only if it follows from these or contradicts none of them, and add its check.
+ */
+export const DEMO = {
+  months: ["Dec", "Jan", "Feb", "Mar", "Apr", "May"],
+  /** Monthly page views in millions. Agents grow by the same factor each month (9x over five steps, GROWTH). */
+  agents: [3.3, 5.1, 8.0, 12.4, 19.2, 29.8],
+  /** People hold about level (GROWTH's 1x). */
+  people: [18.4, 18.1, 18.3, 18.0, 18.3, 18.2],
+  /** Median time for an agent to reach an answer, in seconds; May is TRAFFIC.answerTime. */
+  answerTime: [2.6, 2.1, 1.7, 1.3, 1.0, 0.8],
+  /** May page views by source, in millions; with READERS' agent shares they make 48M at 62% agents. */
+  sources: [
+    { name: "Docs pages", views: 30.6 },
+    { name: "API reference", views: 7.8 },
+    { name: "llms.txt", views: 3.4 },
+    { name: "MCP tools", views: 1.8 },
+    { name: "Changelog", views: 4.4 },
+  ],
+  /** May agent traffic by the format it reads, in percent; Markdown and llms.txt make MARKDOWN_SHARE (83). */
+  formats: [
+    { name: "Markdown pages", share: 72 },
+    { name: "llms.txt files", share: 11 },
+    { name: "Rendered HTML", share: 17 },
+  ],
+  /** All teams by how they use agents on docs, in percent; drafting with agents is TEAM_SHARES.draft (83). */
+  teams: [
+    { name: "Draft with agents, review first", share: 74 },
+    { name: "Draft with agents, publish unreviewed", share: 9 },
+    { name: "No agents", share: 17 },
+  ],
+} as const
+
+export const demoTotal = (i: number) => DEMO.agents[i] + DEMO.people[i]
+export const demoAgentShare = (i: number) => (DEMO.agents[i] / demoTotal(i)) * 100

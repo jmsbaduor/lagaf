@@ -55,4 +55,37 @@ for (let i = 1; i < 4; i++) {
   assert.ok(depth[i] > depth[i - 1], `stage ${i} is not deeper: ${depth.map((d) => d.toFixed(2))}`)
 }
 
+// DEMO agrees with the deck's numbers.
+const D = f.DEMO
+const last = D.months.length - 1
+assert.equal(D.agents.length, D.months.length)
+assert.equal(D.people.length, D.months.length)
+assert.equal(D.answerTime.length, D.months.length)
+// May: 48M in all, 62% of it agents, answers in 0.8s.
+assert.ok(near(f.demoTotal(last), f.TRAFFIC.pageViews.value, 0.05), `May is ${f.demoTotal(last)}M, not 48M`)
+assert.equal(Math.round(f.demoAgentShare(last)), f.TRAFFIC.agentShare.value)
+assert.equal(D.answerTime[last], f.TRAFFIC.answerTime.value)
+// Six months: agents 9x (within rounding), people about 1x, answer time only ever falls.
+assert.ok(Math.abs(D.agents[last] / D.agents[0] - f.GROWTH[0].value) < 0.1, `agents grew ${(D.agents[last] / D.agents[0]).toFixed(2)}x`)
+assert.ok(Math.abs(D.people[last] / D.people[0] - f.GROWTH[1].value) < 0.05)
+for (let i = 1; i <= last; i++) assert.ok(D.answerTime[i] < D.answerTime[i - 1], "answer time rises")
+// Agents grow by about the same factor every month.
+const steps = D.agents.slice(1).map((a, i) => a / D.agents[i])
+for (const s of steps) assert.ok(Math.abs(s - 9 ** (1 / last)) < 0.08, `monthly growth ${steps.map((x) => x.toFixed(2))}`)
+// Sources: 48M in all, and READERS' agent shares weight to 62%.
+const views = D.sources.reduce((s, x) => s + x.views, 0)
+assert.ok(near(views, f.TRAFFIC.pageViews.value, 0.05), `sources make ${views}M`)
+const sourceAgents = D.sources.reduce((s, x) => s + (x.views * f.READERS.find((r) => r.name === x.name).agents) / 100, 0)
+assert.equal(Math.round((sourceAgents / views) * 100), f.TRAFFIC.agentShare.value)
+assert.ok(near(sourceAgents, D.agents[last], 0.1), `sources give ${sourceAgents.toFixed(2)}M agent views, months give ${D.agents[last]}M`)
+// Formats: 100% of agent traffic; Markdown and llms.txt make the waffle's 83; llms.txt's slice matches its source.
+assert.equal(D.formats.reduce((s, x) => s + x.share, 0), 100)
+assert.equal(D.formats[0].share + D.formats[1].share, f.MARKDOWN_SHARE)
+const llmsAgents = (D.sources.find((x) => x.name === "llms.txt").views * f.READERS.find((r) => r.name === "llms.txt").agents) / 100
+assert.ok(near((D.formats[1].share / 100) * D.agents[last], llmsAgents, 0.1), "llms.txt slice and source disagree")
+// Teams: 100% of teams; the two that draft with agents make the dot matrix's 83, and unreviewed is its 9.
+assert.equal(D.teams.reduce((s, x) => s + x.share, 0), 100)
+assert.equal(D.teams[0].share + D.teams[1].share, f.TEAM_SHARES.draft)
+assert.equal(D.teams[1].share, f.TEAM_SHARES.publish)
+
 console.log("facts ok", { density: density.map((d) => +d.toFixed(2)), depth: depth.map((d) => +d.toFixed(2)) })
