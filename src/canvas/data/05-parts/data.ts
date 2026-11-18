@@ -63,7 +63,8 @@ export const TILE_LABEL = { w: 160, h: 80, pad: 20 }
 
 /**
  * Tiles, largest first. Cells are exact; a tile's edges are its cell's rounded to the 4px grid, less the gap. Its
- * agent part runs from its top, as tall as its agent share, rounded to 4, so the label always sits on it.
+ * agent part runs from its top, as tall as its agent share, rounded to 4, so the label always sits on it. The
+ * rounding shows most in MCP tools: its people are 2% of a 104px tile, 2.1px, drawn as the grid's least, 4px.
  */
 export const TILES = (() => {
   const byViews = [...DEMO.sources].sort((a, b) => b.views - a.views)

@@ -48,6 +48,11 @@ for (const a of d.TILES)
         a.x + a.w + d.GAP <= b.x || b.x + b.w + d.GAP <= a.x || a.y + a.h + d.GAP <= b.y || b.y + b.h + d.GAP <= a.y,
         `${a.name} and ${b.name} overlap`
       )
+// The thinnest part drawn is MCP tools' people strip: 2.1px exact, drawn at 4 (within 2px, as every edge is).
+const mcp = d.TILES.find((t) => t.name === "MCP tools")
+assert.equal(mcp.h - mcp.agentH, 4)
+assert.equal(Math.min(...d.TILES.map((t) => t.h - t.agentH)), 4)
+assert.deepEqual([mcp.h, 100 - mcp.agents, ((mcp.h * (100 - mcp.agents)) / 100).toFixed(1)], [104, 2, "2.1"])
 // Agent share: READERS weighted by views is 62%, and so is the drawn agent area.
 assert.equal(d.AGENT_SHARE, f.TRAFFIC.agentShare.value)
 const drawnShare = sum(d.TILES.map((t) => t.w * t.agentH)) / sum(d.TILES.map((t) => t.w * t.h))

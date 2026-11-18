@@ -6,7 +6,8 @@ import { EndLabel, Line, Months, Points, Series, Ticks } from "./parts"
 // Two lines, not a stack: stacked, agents would ride on people's band and the overtake would hide in a thickness.
 // On one scale, people hold flat and agents climb through them between March and April.
 // The entrance draws both lines together, month by month, so agents pass people on screen in April. People go
-// first, so agents (the lead) draw over them where they cross.
+// first, so agents (the lead) draw over them where they cross; April's two points sit 16 apart, edge to edge, and
+// the agents' paper ring parts them.
 const AT = 100
 const DRAW = 700
 
@@ -30,9 +31,9 @@ export default function Crossover() {
         on={active !== null}
       />
 
-      <Months name="Page views by month, agents and people" months={MONTHS} say={say} reading={reading} />
-      <Ticks ticks={VIEWS_TICKS} />
-      <div aria-hidden="true" className="pointer-events-none absolute left-[144px] grid grid-cols-[repeat(2,96px)] gap-8" style={{ top: TOP }}>
+      <Ticks name="Page views a month" ticks={VIEWS_TICKS} />
+      {/* The key ends the axis name's line, at the right; 80px entries hold each name, so it ends on 1368. */}
+      <div aria-hidden="true" className="pointer-events-none absolute right-[72px] grid grid-cols-[repeat(2,80px)] gap-8" style={{ top: TOP }}>
         {SERIES.map((s) => (
           <Key key={s.name} color={s.color}>
             {s.name}
@@ -52,6 +53,7 @@ export default function Crossover() {
           {millions(VIEWS[LAST][s.key])}
         </EndLabel>
       ))}
+      <Months name="Page views by month, agents and people" months={MONTHS} say={say} reading={reading} />
     </Frame>
   )
 }

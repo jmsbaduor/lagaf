@@ -48,7 +48,8 @@
 .viz-fade,
 .viz-grow-x,
 .viz-grow-y,
-.viz-wipe {
+.viz-wipe,
+.viz-draw {
   animation-duration: var(--viz-dur, 600ms);
   animation-timing-function: var(--viz-ease);
   animation-delay: var(--viz-delay, 0ms);
@@ -71,6 +72,10 @@
   animation-name: viz-wipe;
   animation-timing-function: steps(var(--viz-steps, 1), end);
 }
+/* A Series draws in left to right, x being time: the same wipe, on the kit's curve rather than in steps. */
+.viz-draw {
+  animation-name: viz-wipe;
+}
 
 /* Every number in a chart uses tabular figures, so digits line up and don't shift while they count. */
 [data-frame] {
@@ -78,13 +83,26 @@
 }
 
 /* A Cell's fill paints var(--px); data-dim fades it toward the paper. Colour changes are transitions
-   (interruptible), 150ms on the kit's curve; entrances are the classes above. */
+   (interruptible), 150ms on the kit's curve; entrances are the classes above. The fade mixes in oklab, a straight
+   line to the paper: in oklch the hue would swing toward the paper's, and a violet would fade through peach. */
 .px-cell {
   background-color: var(--px);
   transition: background-color 150ms var(--viz-ease);
 }
 .px-cell[data-dim] {
-  background-color: color-mix(in oklch, var(--px) 22%, var(--viz-paper));
+  background-color: color-mix(in oklab, var(--px) 22%, var(--viz-paper));
+}
+/* A Point is the SVG twin of a Cell: it fills with --px and data-dim fades it the same way. Its 4px stroke in the
+   paper, painted under the fill, leaves a 2px ring outside the square. */
+.viz-point {
+  fill: var(--px);
+  stroke: var(--viz-paper);
+  stroke-width: 4px;
+  paint-order: stroke;
+  transition: fill 150ms var(--viz-ease);
+}
+.viz-point[data-dim] {
+  fill: color-mix(in oklab, var(--px) 22%, var(--viz-paper));
 }
 
 /* Diagonal hatch for "headroom" behind bars. */

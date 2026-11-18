@@ -12,6 +12,8 @@ import {
   smallLabelText,
   TOP,
   useReading,
+  XAxis,
+  YAxis,
 } from "@/canvas/kit"
 import { cn } from "@/lib/utils"
 
@@ -20,10 +22,11 @@ import "./spreads.css"
 
 // One cell a percentage point both ways, 91 to 100, so the no-change line is the diagonal of hatched cells and a
 // square's height above it is its gain. A cell holds up to 9 sites as 12px squares, 4px from each other and the edges.
+// Both axes are banded: each tick labels its row or column of cells.
 const N = AXIS_MAX - AXIS_MIN + 1
 const PLOT = N * SITE_CELL // 520
 const PLOT_X = 128 // after the 48px tick column and 8
-const PLOT_Y = TOP + 32 // under the y axis's name
+const PLOT_Y = TOP + 24 // a banded axis's top tick sits mid-cell, so the plot can start 8 under the y axis's name
 const PANEL_X = 744
 const VALUES = Array.from({ length: N }, (_, i) => AXIS_MIN + i)
 const x = (v: number) => (v - AXIS_MIN) * SITE_CELL
@@ -67,27 +70,20 @@ export default function EvalSites() {
         on={!!on}
       />
 
-      {/* Each axis is named at its far end: after at the top of the y axis, before at the end of the x axis. */}
-      <Label className="absolute left-[72px]" style={{ top: TOP }}>
-        After llms.txt, % correct
-      </Label>
-      <div aria-hidden="true" className="absolute left-[72px] w-12" style={{ top: PLOT_Y }}>
-        {VALUES.toReversed().map((v) => (
-          <p key={v} className={cn(smallLabelText, "text-right leading-[52px] text-viz-label")}>
-            {v}
-          </p>
-        ))}
-      </div>
-      <div aria-hidden="true" className="absolute flex" style={{ left: PLOT_X, top: PLOT_Y + PLOT + 8 }}>
-        {VALUES.map((v) => (
-          <p key={v} className={cn(smallLabelText, "w-[52px] text-center text-viz-label")}>
-            {v}
-          </p>
-        ))}
-      </div>
-      <Label className="absolute" style={{ left: PLOT_X + PLOT + 16, top: PLOT_Y + PLOT + 8 }}>
-        Before llms.txt, % correct
-      </Label>
+      {/* The read site's before and after turn to the ink on their axes. */}
+      <YAxis
+        name="After llms.txt, % correct"
+        ticks={VALUES.map((v) => ({ at: PLOT_Y + y(v), label: String(v), on: on?.after === v }))}
+        from={PLOT_X}
+        band={SITE_CELL}
+      />
+      <XAxis
+        name="Before llms.txt, % correct"
+        ticks={VALUES.map((v) => ({ at: PLOT_X + x(v), label: String(v), on: on?.before === v }))}
+        y={PLOT_Y + PLOT}
+        to={PLOT_X + PLOT}
+        band={SITE_CELL}
+      />
 
       <div className="absolute" style={{ left: PLOT_X, top: PLOT_Y, width: PLOT, height: PLOT }}>
         {/* Hairlines on every cell's top and left edge, and the plot's right and bottom edges. */}
@@ -96,9 +92,9 @@ export default function EvalSites() {
           className="absolute inset-0"
           style={{
             backgroundImage:
-              "linear-gradient(to right, var(--color-border) 1px, transparent 1px), linear-gradient(to bottom, var(--color-border) 1px, transparent 1px)",
+              "linear-gradient(to right, var(--viz-hatch) 1px, transparent 1px), linear-gradient(to bottom, var(--viz-hatch) 1px, transparent 1px)",
             backgroundSize: `${SITE_CELL}px ${SITE_CELL}px`,
-            boxShadow: "inset -1px -1px 0 var(--color-border)",
+            boxShadow: "inset -1px -1px 0 var(--viz-hatch)",
           }}
         />
         {VALUES.map((v) => (
@@ -129,7 +125,7 @@ export default function EvalSites() {
               name={name}
               value={s.name}
               // The square is 12px; its hit area runs 2px further, so a cell's squares tile with no gaps between.
-              className="viz-fade absolute size-3 before:absolute before:-inset-0.5"
+              className="viz-fade absolute size-3 before:absolute before:-inset-0.5 has-[:focus-visible]:outline-offset-1"
               style={{
                 left: x(s.before) + 4 + (s.slot % 3) * 16,
                 top: y(s.after) + 4 + Math.floor(s.slot / 3) * 16,
@@ -140,16 +136,15 @@ export default function EvalSites() {
               <span className="sr-only">
                 {s.name}: {s.before}% to {s.after}%
               </span>
+              {/* A site that isn't read fades toward the paper rather than turning see-through, so the hatch under
+                  a square on the line doesn't show through it. */}
               <span
                 aria-hidden="true"
-                // A site that isn't read mixes toward the paper rather than turning see-through, so the hatch
-                // under a square on the line doesn't show through it.
-                className={cn(
-                  "spread-rise block size-full bg-viz-lead transition-colors",
-                  dim(s.name) && "bg-[color-mix(in_oklch,var(--viz-lead)_30%,var(--viz-paper))]"
-                )}
+                data-dim={dim(s.name) || undefined}
+                className="spread-rise px-cell block size-full"
                 style={
                   {
+                    "--px": "var(--viz-lead)",
                     "--rise": `${(s.after - s.before) * SITE_CELL}px`,
                     ...delay(RISE_AT + (s.before - AXIS_MIN) * STAGGER, RISE),
                   } as CSSProperties

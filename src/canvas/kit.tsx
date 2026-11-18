@@ -1,4 +1,4 @@
-// What every chart is built from, in five parts: the frame and header, readings, type, motion, and marks.
+// What every chart is built from, in six parts: the frame and header, readings, type, motion, marks, and plots.
 // Colours are the chart roles in src/styles/global.css (section 6); docs/charts.md has the rules behind each part.
 import {
   createContext,
@@ -143,9 +143,13 @@ export function useReading<K>() {
   return { active, bind, dim }
 }
 
+// Focus rings: 2px in the ring colour, only while focus is visible. Every outline class is conditional: at rest the
+// stage's Boxes layer owns the outline (0.5px, transparent until Boxes is on), and an unconditional colour or offset
+// would paint that hairline as a 1px ring on every item. No `outline-none` beside them either: it sets
+// --tw-outline-style to none, which `outline-2` reads, so the ring would never draw.
+
 /** Visible focus for chart items that take focus (tabIndex={0}) and have no band. */
-export const focusRing =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-8 focus-visible:outline-ring"
+export const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-8 focus-visible:outline-ring"
 
 /** A row that can be read (focusable, marked `data-active` while read): the band below positions against it. */
 export const row = "group relative isolate outline-none"
@@ -157,7 +161,7 @@ export const row = "group relative isolate outline-none"
 export const band = cn(
   "pointer-events-none absolute -inset-x-4 inset-y-0 -z-10 bg-viz-panel/40 opacity-0",
   "transition-opacity group-data-active:opacity-100",
-  "outline-ring group-focus-visible:outline-2 group-focus-visible:-outline-offset-2"
+  "group-focus-visible:outline-2 group-focus-visible:-outline-offset-2 group-focus-visible:outline-ring"
 )
 
 /** A group of choices: a fieldset with a legend for screen readers. */
@@ -173,7 +177,8 @@ export function Choices({ legend, className, children }: { legend: string; class
 /**
  * One choice, a native radio: Tab enters and leaves the group, arrow keys move through it, click or tap focuses
  * one. Spread `bind` on it to read what is hovered or focused. Pass `checked` and `onPick` only where a pick
- * outlasts the reading (the dot matrix keeps its share).
+ * outlasts the reading (the dot matrix keeps its share). Its ring sits 4px out; in a grid with 4px gaps, pass
+ * `has-[:focus-visible]:outline-offset-1` so it stays in the gap.
  */
 export function Choice({
   name,
@@ -191,7 +196,11 @@ export function Choice({
 }) {
   return (
     <label
-      className={cn("relative cursor-pointer outline-offset-4 outline-ring has-[:focus-visible]:outline-2", className)}
+      className={cn(
+        "relative cursor-pointer",
+        "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-4 has-[:focus-visible]:outline-ring",
+        className
+      )}
       {...props}
     >
       <input
@@ -434,5 +443,158 @@ export function Panel({
       <Tag className={cn("transition-colors duration-200", solid ? SOFT : SOLID)}>{tag}</Tag>
       {children}
     </div>
+  )
+}
+
+// ── Plots ───────────────────────────────────────────────────────────────────────────────────────────────────────
+// docs/charts.md "SVG and plots" has the convention these parts set: where axes, ticks and names go, and why.
+
+/**
+ * A tick's face: the small label in viz-label, keeping its unit's case (2s, 10M, 09:00), since a tick is a value.
+ * The read item's ticks turn to the ink.
+ */
+export const tickText = cn(smallLabelText, "normal-case text-viz-label")
+
+/**
+ * A tick: `at` is its value's place in frame px (a gridline's y, a column's centre x), or with `band` the start of
+ * the band it labels (a row or column of cells). `on` inks it while its item is read.
+ */
+type Tick = { at: number; label: string; on?: boolean }
+
+/**
+ * The value or category axis up a plot's left side, drawn from the start (it's read, so it doesn't move). Each label
+ * is right-aligned 8 before the plot's left edge (`from`), centred on its y or in its `band`. With `to`, a 1px
+ * viz-hatch gridline runs across the plot at each tick, zero included; a grid of cells leaves it out. `name`
+ * labels a value axis at its far end: on TOP, 8 above the highest tick.
+ */
+export function YAxis({
+  name,
+  ticks,
+  from,
+  to,
+  band,
+}: {
+  name?: string
+  ticks: readonly Tick[]
+  from: number
+  to?: number
+  band?: number
+}) {
+  return (
+    <div aria-hidden="true">
+      {name && (
+        <Label className="absolute left-[72px]" style={{ top: TOP }}>
+          {name}
+        </Label>
+      )}
+      {to !== undefined &&
+        ticks.map((t) => (
+          <span key={t.at} className="absolute h-px bg-viz-hatch" style={{ left: from, width: to - from, top: t.at }} />
+        ))}
+      {ticks.map((t) => (
+        <p
+          key={t.at}
+          className={cn(tickText, "absolute left-[72px] text-right transition-colors", t.on && "text-foreground")}
+          style={band ? { top: t.at, width: from - 80, lineHeight: `${band}px` } : { top: t.at - 8, width: from - 80 }}
+        >
+          {t.label}
+        </p>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * The axis under a plot whose baseline is `y`: each label 12 under it, centred on its x or in its `band`. A label
+ * centred on a point is 48 wide, or 44 when the point is mid-grid, so its box's edges land on the 4px grid. `name`
+ * labels a value axis at its far end, right-aligned to `to` on the line under the ticks; a time or category axis
+ * (months, hours) needs none.
+ */
+export function XAxis({
+  name,
+  ticks,
+  y,
+  to = FRAME_W - 72,
+  band,
+}: {
+  name?: string
+  ticks: readonly Tick[]
+  y: number
+  to?: number
+  band?: number
+}) {
+  return (
+    <div aria-hidden="true">
+      {ticks.map((t) => {
+        const w = band ?? (t.at % 4 ? 44 : 48)
+        return (
+          <p
+            key={t.at}
+            className={cn(tickText, "absolute text-center transition-colors", t.on && "text-foreground")}
+            style={{ left: band ? t.at : t.at - w / 2, width: w, top: y + 12 }}
+          >
+            {t.label}
+          </p>
+        )
+      })}
+      {name && (
+        <Label className="absolute text-right" style={{ right: FRAME_W - to, top: y + 36 }}>
+          {name}
+        </Label>
+      )}
+    </div>
+  )
+}
+
+/**
+ * An SVG over the box it's given whose user units are the frame's px, so its marks take frame coordinates. It
+ * draws in left to right on entrance (`viz-draw`, x being time): one clip for every line and point in it, so two
+ * lines cross on screen when they cross in the data. Text stays out of it, in HTML, where Boxes holds it to the grid.
+ */
+export function Series({
+  x,
+  y,
+  w,
+  h,
+  at,
+  duration,
+  children,
+}: {
+  x: number
+  y: number
+  w: number
+  h: number
+  at: number
+  duration: number
+  children: ReactNode
+}) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="viz-draw pointer-events-none absolute"
+      style={{ left: x, top: y, width: w, height: h, ...delay(at, duration) }}
+      viewBox={`${x} ${y} ${w} ${h}`}
+    >
+      {children}
+    </svg>
+  )
+}
+
+/**
+ * A point in a Series: a 16px square (the Key's swatch) centred on (x, y), in `color` (a role: var(--viz-lead)).
+ * A 2px ring in the paper parts it from any line or point it meets. `dim` fades it toward the paper, as Cell does.
+ */
+export function Point({ x, y, color, dim }: { x: number; y: number; color: string; dim?: boolean }) {
+  return (
+    <rect
+      x={x - 8}
+      y={y - 8}
+      width={16}
+      height={16}
+      shapeRendering="crispEdges"
+      data-dim={dim || undefined}
+      className="viz-point"
+      style={{ "--px": color } as CSSProperties}
+    />
   )
 }

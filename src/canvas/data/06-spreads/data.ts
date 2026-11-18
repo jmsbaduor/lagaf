@@ -37,11 +37,17 @@ export const siteCounts = {
   fell: SITES.filter((s) => s.after < s.before).length,
 }
 
-/** Each site's place in its cell: centre first, then left, right, above, below and the corners. */
-const SLOT_ORDER = [4, 3, 5, 1, 7, 0, 2, 6, 8]
-export const SITE_SLOT = SITES.map(
-  (s, i) => SLOT_ORDER[SITES.slice(0, i).filter((t) => t.before === s.before && t.after === s.after).length]
-)
+/**
+ * Each site's place in its cell, 0 to 8 in reading order. Places are dealt per column (one "before"), the sites
+ * that end highest first: a column of three or fewer takes the middle row, a fuller one fills rows from the top,
+ * each row from its centre. Squares that share a column of places then start in the order they end, so as they rise
+ * none crosses another (in column 99, seven rise past the one that held).
+ */
+export const SITE_SLOT = SITES.map((s, i) => {
+  const column = SITES.filter((t) => t.before === s.before).length
+  const k = SITES.filter((t, j) => t.before === s.before && (t.after > s.after || (t.after === s.after && j < i))).length
+  return (column <= 3 ? 1 : Math.floor(k / 3)) * 3 + [1, 0, 2][k % 3]
+})
 
 // ── rhythm ──────────────────────────────────────────────────────────────────────────────────────────────────────
 

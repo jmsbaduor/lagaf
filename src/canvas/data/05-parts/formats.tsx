@@ -21,9 +21,11 @@ const ring = arc<{ start: number; end: number }>()
   .padAngle(2 * Math.asin(GAP / 2 / R))
 const RING_X = 1368 - 2 * R
 
-// The entrance is the sweep: every slice's track is there, then the lead arcs (Markdown and llms.txt) fill
-// clockwise from 12 o'clock while the centre counts to their 83, so the two land together. Rows are read, so they
-// don't move.
+// HTML is a real share, not an empty one, so it takes the neutral that "the rest" takes elsewhere (people in who
+// reads and sources), not the track, which read as a gap in the ring and an empty swatch in its row.
+// The entrance is the sweep: the HTML slice and the lead slices' tracks are there, then the lead arcs (Markdown and
+// llms.txt) fill clockwise from 12 o'clock while the centre counts to their 83, so the two land together. Rows are
+// read, so they don't move.
 const SWEEP_AT = 100
 const SWEEP = 800
 
@@ -57,7 +59,7 @@ export default function Formats() {
               {f.share}%
             </p>
             <span aria-hidden="true">
-              <Key color={f.lead ? "var(--viz-lead)" : "var(--viz-track)"}>{f.name}</Key>
+              <Key color={f.lead ? "var(--viz-lead)" : "var(--viz-label)"}>{f.name}</Key>
             </span>
           </li>
         ))}
@@ -88,7 +90,7 @@ export default function Formats() {
           {/* A slice that isn't read fades to 30% over the paper, track and arc together. */}
           {FORMATS.map((f, i) => (
             <g key={f.name} className={cn("transition-opacity", dim(i) && "opacity-30")} {...bind(i)}>
-              <path d={ring(f) ?? undefined} className="fill-viz-track" />
+              <path d={ring(f) ?? undefined} className={f.lead ? "fill-viz-track" : "fill-viz-label"} />
               {f.lead && <path d={ring(f) ?? undefined} mask={`url(#${mask})`} className="fill-viz-lead" />}
             </g>
           ))}

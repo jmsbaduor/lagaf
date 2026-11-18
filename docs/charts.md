@@ -8,7 +8,7 @@ A chart is one idea on one screen. Start from `src/canvas/data/_template/chart.t
 - The header fills 72 to 168. Data starts at `TOP` (232) and ends by 828, so the data area is 1296 by 596.
 - Every box sits on the 4px grid: its left, right, top and bottom edges are whole multiples of 4. A text box sized by its words needs only one side edge on the grid. Press G twice on the stage to see Boxes; the readout bottom left must say no box is off.
 - Rules and fields may run past the safe area to the screen's edge (the readout's crosshair does). Nothing else leaves the content box.
-- Pick sizes that land on the grid by construction: a track of 800 is 8px a point, so every share is a whole bar. Where a length must be rounded, round to 4 and keep it within 2px of exact.
+- Pick sizes that land on the grid by construction: a track of 800 is 8px a point, so every share is a whole bar. Where a length must be rounded, round to 4 and keep it within 2px of exact. A part under 4px draws at 4, the grid's least: in sources, MCP tools' people are 2.1px of their tile and draw at 4.
 
 ## Header
 
@@ -52,7 +52,7 @@ For hand-written CSS, mix toward `var(--viz-ink)` or `var(--viz-paper)`. Text ne
 - One entrance, and it explains the data: a bar grows from its baseline, a rule draws, cells fill as the number counts, a pixel field wipes in a column at a time.
 - Nothing that is only read moves: the header, labels, notes, tracks and hatch are there from the start.
 - The whole entrance ends within about 1s. Marks start at 100ms, run 500 to 700ms, and stagger in shrinking steps (100, 160, 200, 230) so a list lands as one wave.
-- Use the kit's CSS classes (`viz-grow-x`, `viz-grow-y`, `viz-fade`, `viz-wipe`) timed by `delay()` or `wipe()`, or the parts that wrap them (`Rule`, `Fill`, `Cell`). They are CSS animations so the frame can finish them on the first click or key and the stage can slow them. A number is a `CountUp` with its mark's delay and duration; `countAt` starts each cell of a cascade as the count passes it.
+- Use the kit's CSS classes (`viz-grow-x`, `viz-grow-y`, `viz-fade`, `viz-wipe`, `viz-draw`) timed by `delay()` or `wipe()`, or the parts that wrap them (`Rule`, `Fill`, `Cell`). They are CSS animations so the frame can finish them on the first click or key and the stage can slow them. A number is a `CountUp` with its mark's delay and duration; `countAt` starts each cell of a cascade as the count passes it.
 - One curve, `--viz-ease`. No springs, no bounce, no loops.
 - Reduced motion lands on the end state at once. The kit handles it; don't add motion outside the kit's classes and `CountUp`.
 - Answers are transitions: 150ms for a reading, 200ms for a knob. Never reorder or remount a mark to answer a knob: that replays its entrance.
@@ -60,8 +60,23 @@ For hand-written CSS, mix toward `var(--viz-ink)` or `var(--viz-paper)`. Text ne
 ## Readings and knobs
 
 - A reading points at a part. Hover or focus an item; the header's hint shows it as "Label: value"; every other item fades its marks to about 30% and mutes its words, which still read at 4.5:1. Use `useReading`: spread `bind(key)` on each item, test `dim(key)`, and show `active` in the hint.
-- Every read item takes focus: an `<li tabIndex={0}>` with `focusRing`, a `row` with a `band`, or a `Choice` radio when a pick should outlast the reading.
+- Every read item takes focus: an `<li tabIndex={0}>` with `focusRing`, a `row` with a `band`, or a `Choice` radio when a pick should outlast the reading. Each shows a 2px ring in `ring` while focus is visible, and nothing at rest. In a grid with 4px gaps, give the `Choice` `has-[:focus-visible]:outline-offset-1` so its ring stays in the gap.
+- Never put an outline class on a read item outside a `focus-visible` variant, nor `outline-none` beside the ring's: at rest the stage's Boxes layer owns every outline (0.5px, transparent until Boxes is on), so a bare `outline-ring` paints it as a 1px ring on every item, and `outline-none` sets the style `outline-2` reads, so the ring never draws.
 - A knob changes what the chart says: a format, a register, which measure. Export `knobs` from the chart file and take its values as props; the stage puts it in the bottom bar. Add one only for a real switch.
+
+## SVG and plots
+
+A chart with axes (lines, scatters, heatmaps, histograms) follows one convention, so every plot reads as one system with the rest. `YAxis`, `XAxis`, `Series` and `Point` in the kit draw it.
+
+- **SVG only for what HTML can't draw.** Lines and points go in a `Series`: an SVG whose user units are the frame's px (its viewBox is its own box), so they take the same coordinates as everything else. Ticks, names, bars and cells stay HTML. Why: `check:browser` holds HTML boxes to the 4px grid and can't see inside an SVG.
+- **The y axis.** A value axis is named at its far end: a `Label` on `TOP` at 72. Tick labels are right-aligned 8 before the plot's left edge and centred on their value; the highest clears the name by 8, so a plot with gridlines starts at `TOP + 32`, and a banded one (its ticks sit mid-cell) at `TOP + 24`. Why: the name sits where the eye meets the axis, and each tick hugs what it measures.
+- **The x axis.** Tick labels sit 12 under the baseline, centred on their value or their band. A value axis is named at its far end too, right-aligned to the plot's right edge on the line under the ticks. A time or category axis (months, hours, weekdays) takes no name: its ticks say what it is. Nothing runs past 828.
+- **Ticks.** `tickText`, mono 12/16 in `viz-label`, keeping their unit's case (2s, 10M, 09:00): a tick is a value. Names (axes, keys) are `Label`, uppercase. A tick centred on a point is 48 wide, or 44 when the point is mid-grid, so its box lands on the grid.
+- **Gridlines.** A 1px `viz-hatch` line at each tick, zero included, across the plot, and no other axis line. A grid of cells draws its own hairlines (eval sites) or none (rhythm). Why: rules that aren't data stay one quiet colour; rows' rules are `border`, the same value.
+- **Marks.** Strokes are 4px, one grid unit, with butt caps and miter joins; straight runs are `crispEdges`, slopes `geometricPrecision`. A point is a 16px square, the Key's swatch, with a 2px ring in the paper, so it parts from a line or a point it meets (crossover's April points sit edge to edge). Where several share a cell they are 12px on a 16px pitch (eval sites). Bars and cells are whole 4px.
+- **Reading.** The read item keeps its colour and its ticks turn to the ink; every other mark fades to about 30% toward the paper (`dim`, `data-dim`). Nothing tints behind the plot. Why: a column tint over the lines was heavy in dark mode, and fading the rest says the same with less ink. A heatmap's read cell also takes a 2px ring in the ink, since it can be paler than its faded neighbours.
+- **Entrance.** A Series wipes in left to right (`viz-draw`), so x is time and two lines cross on screen when they cross in the data; bars grow, cells wipe, points rise. Axes, ticks and gridlines are there from the start.
+- **Sequential colour.** A ramp's steps must stay apart: heatmap steps run from the track to the lead in even steps, and the top step goes on past the lead (toward `viz-deep` in light, the ink in dark), so no two neighbours read as one.
 
 ## Copy
 
@@ -89,15 +104,17 @@ What is drawn equals the numbers. Every number a chart draws lives in `src/canva
 | `Frame`, `Header`, `TOP` | Every chart | All |
 | `useReading`, `focusRing` | Hover and focus readings | All that read |
 | `row`, `band` | A ruled row that tints while read | Numbers, comparison |
-| `Choices`, `Choice` | Items that are radios | Waffle, dot matrix, who reads, timeline |
+| `Choices`, `Choice` | Items that are radios | Waffle, dot matrix, who reads, timeline, eval sites, rhythm, answer spread |
 | `Rule` | A hairline that draws from the left | Readout, dashboard, numbers, comparison |
-| `Fill` | A bar growing from its baseline | Update lag, token bar, growth |
-| `Cell` | A pixel or dot that fills | Waffle, dot matrix |
-| `Key` | A legend entry | Waffle, who reads |
+| `Fill` | A bar growing from its baseline | Update lag, token bar, growth, team review, answer spread |
+| `Cell` | A pixel or dot that fills | Waffle, dot matrix (eval sites uses its `px-cell` fade) |
+| `Key` | A legend entry | Waffle, who reads, crossover, formats, sources |
 | `Panel` | A readout panel with its tag, soft or solid | Readout, dashboard |
 | `CountUp`, `countAt`, `delay`, `wipe` | Timing | Most |
+| `YAxis`, `XAxis`, `tickText` | A plot's axes: names, ticks and gridlines | Agent share, crossover, answer time, eval sites, rhythm, answer spread |
+| `Series`, `Point` | Lines and points in frame px, drawn in left to right | Agent share, crossover, answer time |
 
-Add a part to the kit only when two charts use it, with the fewest props that cover both.
+Add a part to the kit only when two charts use it, with the fewest props that cover both. A row's own layout (row 04's month columns, `Months`, `Line`, `EndLabel`) stays in its `parts.tsx`; the formats ring's sweep stays in `05-parts/parts.css` until a second chart sweeps.
 
 ## Checks
 

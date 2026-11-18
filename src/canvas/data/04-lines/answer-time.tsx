@@ -25,8 +25,7 @@ export default function AnswerTime() {
         on={active !== null}
       />
 
-      <Months name="Median answer time by month" months={MONTHS} say={say} reading={reading} />
-      <Ticks ticks={ANSWER_TICKS} />
+      <Ticks name="Median answer time" ticks={ANSWER_TICKS} />
       <Series count={MONTHS.length} at={AT} duration={DRAW}>
         <Line heights={heights} step className="stroke-viz-lead" />
         <Points heights={heights} color="var(--viz-lead)" dim={dim} />
@@ -34,6 +33,7 @@ export default function AnswerTime() {
       <EndLabel h={ANSWER[LAST].h} count={MONTHS.length} at={AT} duration={DRAW} dim={dim(LAST)}>
         {sec(ANSWER[LAST].time)}
       </EndLabel>
+      <Months name="Median answer time by month" months={MONTHS} say={say} reading={reading} />
     </Frame>
   )
 }

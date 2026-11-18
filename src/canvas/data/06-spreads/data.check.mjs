@@ -28,6 +28,16 @@ assert.equal(Math.min(...d.SITES.map((s) => s.before)), d.AXIS_MIN)
 const slots = new Set(d.SITES.map((s, i) => `${s.before},${s.after},${d.SITE_SLOT[i]}`))
 assert.equal(slots.size, d.SITES.length)
 assert.ok(d.SITE_SLOT.every((x) => x !== undefined && x < d.SITE_SLOTS))
+// Seven sites share the 99 to 100 cell, and none crosses another as it rises: two squares in one column of places
+// start in the order they end, so the upper one rises at least as far and they stay 16 apart or more.
+assert.equal(d.SITES.filter((s) => s.before === 99 && s.after === 100).length, 7)
+d.SITES.forEach((a, i) =>
+  d.SITES.forEach((b, j) => {
+    const [sa, sb] = [d.SITE_SLOT[i], d.SITE_SLOT[j]]
+    if (a.before === b.before && sa % 3 === sb % 3 && Math.floor(sa / 3) < Math.floor(sb / 3))
+      assert.ok(a.after >= b.after, `${a.name} rises through ${b.name}`)
+  })
+)
 // A cell is 3 squares of 12 with 4 between and around them, on the 4px grid.
 assert.equal(d.SITE_CELL, 3 * 12 + 4 * 4)
 assert.equal(d.SITE_CELL % 4, 0)

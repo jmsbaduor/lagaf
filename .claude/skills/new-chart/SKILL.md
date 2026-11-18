@@ -25,12 +25,21 @@ Write the chart's `ideas.ts` line first: what it shows and how it is read. If it
 | A part of its whole | `token-bar` | `Fill`, `viz-hatch` |
 | Values on one scale | `growth`, or the template | `Fill`, `CountUp` |
 | Before and after | `eval-rows` | `CountUp`, `--viz-from` |
+| A line over time | `agent-share` | `Series`, `Point`, `YAxis`, `XAxis`; row 04's `Months`, `Line`, `EndLabel` |
+| Two series that cross | `crossover` | as a line over time, with `Key` |
+| A value held for each period (steps) | `answer-time` | row 04's `Line` with `step`, `Series`, `Point` |
+| Parts of a whole, as a ring | `formats` | d3's `arc`, a sweep mask, `Key`, `band`, `CountUp` |
+| Many parts sized by value (treemap) | `sources` | `squarify` in `05-parts/data.ts`, `wipe`, `Key`, `focusRing` |
+| One whole split in segments (100% bar) | `team-review` | `Fill`, `CountUp`, `focusRing` |
+| Each item on two measures (scatter) | `eval-sites` | `YAxis` and `XAxis` with `band`, `Choice`, `px-cell` |
+| A value by two categories (heatmap) | `rhythm` | `YAxis` and `XAxis` with `band`, `Choice`, `wipe`, a stepped ramp |
+| A distribution (histogram) | `answer-spread` | `YAxis`, `XAxis`, `Fill` (y), `Choice` |
 
 Read that chart's file before writing. Why: its measures already sit on the grid and its motion is tuned; reuse them rather than invent new ones. Never add a kit part for one chart. Why: a part earns its place when a second chart needs it.
 
 ## 3. Copy the template
 
-- Row by what the marks are: `01-readouts` numbers, `02-pixels` counted cells, `03-bars` lengths. Anything else gets a new `NN-<row>/` with the next number and a copy of `_template/ideas.ts`, its `row` set to NN. Why: the registry orders rows by that number.
+- Row by what the marks are: `01-readouts` numbers, `02-pixels` counted cells, `03-bars` lengths, `04-lines` lines over time, `05-parts` parts of a whole, `06-spreads` spreads (scatters, heatmaps, histograms). Anything else gets a new `NN-<row>/` with the next number and a copy of `_template/ideas.ts`, its `row` set to NN. Why: the registry orders rows by that number.
 - Copy `_template/chart.tsx` to `<NN-row>/<slug>.tsx`. The slug is the URL: lowercase, hyphens, unique across rows (the registry throws on a duplicate).
 - Add `[slug, idea]` to the row's `ideas.ts`. Why: only listed files show.
 
@@ -45,6 +54,7 @@ Read that chart's file before writing. Why: its measures already sit on the grid
 
 - Data from `TOP` to no lower than 828, across 72 to 1368.
 - Choose sizes that land on 4px by construction (an 800 track is 8px a point). Why: `check:browser` fails any box off the 4px grid, and a fractional edge blurs.
+- A chart with axes follows "SVG and plots" in `docs/charts.md`, through `YAxis`, `XAxis`, `Series` and `Point`: names at the axes' far ends, `tickText` ticks, `viz-hatch` gridlines, 4px strokes, 16px points, and readings that fade the rest rather than tint. Why: one convention, so a new plot reads as one with the others.
 
 ## 6. Copy
 
