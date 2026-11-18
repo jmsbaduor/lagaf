@@ -1,0 +1,48 @@
+/*
+ * Row 06's own motion and ramp, on the kit's curve and timing variables (kit.css), so the frame can finish them and
+ * reduced motion lands them at once.
+ */
+
+/* A site's square rising from where it started (on the no-change line) to where it ended: --rise is the gap. */
+@keyframes spread-rise {
+  from {
+    translate: 0 var(--rise, 0);
+  }
+}
+.spread-rise {
+  animation: spread-rise var(--viz-dur, 600ms) var(--viz-ease) var(--viz-delay, 0ms) both;
+}
+
+/* The heatmap's six steps, from the track to the lead, so every accent and mode gets its own ramp: pale to deep in
+   light, dark to bright in dark. A knob change recolours in 200ms; a reading dims in 150ms. */
+.spread-cell {
+  transition:
+    background-color 200ms var(--viz-ease),
+    opacity 150ms var(--viz-ease),
+    box-shadow 150ms var(--viz-ease);
+}
+/* The read cell: a 2px ring in the ink, 1px out, inside the 4px gap. A shadow, as the stage's Boxes layer owns
+   outlines on everything that isn't focused. */
+.spread-cell[data-active] {
+  box-shadow:
+    0 0 0 1px var(--viz-paper),
+    0 0 0 3px var(--viz-ink);
+}
+.spread-step-0 {
+  background-color: var(--viz-track);
+}
+.spread-step-1 {
+  background-color: color-mix(in oklch, var(--viz-lead) 20%, var(--viz-track));
+}
+.spread-step-2 {
+  background-color: color-mix(in oklch, var(--viz-lead) 40%, var(--viz-track));
+}
+.spread-step-3 {
+  background-color: color-mix(in oklch, var(--viz-lead) 60%, var(--viz-track));
+}
+.spread-step-4 {
+  background-color: color-mix(in oklch, var(--viz-lead) 80%, var(--viz-track));
+}
+.spread-step-5 {
+  background-color: var(--viz-lead);
+}
