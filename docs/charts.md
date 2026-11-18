@@ -75,6 +75,13 @@ For hand-written CSS, mix toward `var(--viz-ink)` or `var(--viz-paper)`. Text ne
 
 What is drawn equals the numbers. Every number a chart draws lives in `src/canvas/data/facts.ts`, with the rule that turns it into marks (cells per percent, px per point). `facts.check.mjs` asserts the marks match what is said: counts, sums to 100, lengths on the grid and within 2px, headlines that follow from their before and after. `facts.ts` has no imports, so Node runs it as is.
 
+### Real data and demo data
+
+- **Real data** comes from the request. Draw only those numbers; if one is missing, ask.
+- **Demo data** is made up, and only when the request asks for a demo or example chart. It still has to be true of itself and of every other chart: the demo charts tell one story (`DEMO` in `facts.ts`: a docs platform from December to May, agents growing ninefold to 62% of 48M monthly views, answers in 0.8s). Draw from `DEMO`, derive from it, or add numbers that contradict none of it, and assert each one. Make it feel real: uneven months, a few outliers, plausible magnitudes, nothing suspiciously round.
+- **Statements are facts too.** A title, description or hint that says something about the data ("Agents passed people in April") gets an assert that it holds.
+- A row may keep its own derived numbers in `<NN-row>/data.ts` with asserts in `data.check.mjs`, importing `../facts.ts`; `pnpm check` runs every check.
+
 ## The kit
 
 | Part | For | Used by |

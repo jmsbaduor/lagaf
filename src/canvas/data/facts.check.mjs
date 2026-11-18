@@ -1,5 +1,6 @@
 // What is drawn equals what is said. Run: node src/canvas/data/facts.check.mjs (Node 24 reads facts.ts as is).
 import assert from "node:assert/strict"
+import { existsSync, readdirSync } from "node:fs"
 
 import * as f from "./facts.ts"
 
@@ -89,3 +90,12 @@ assert.equal(D.teams[0].share + D.teams[1].share, f.TEAM_SHARES.draft)
 assert.equal(D.teams[1].share, f.TEAM_SHARES.publish)
 
 console.log("facts ok", { density: density.map((d) => +d.toFixed(2)), depth: depth.map((d) => +d.toFixed(2)) })
+
+// Each row's own derived numbers: <NN-row>/data.check.mjs, if it has one.
+for (const dir of readdirSync(new URL(".", import.meta.url)).filter((d) => /^\d\d-/.test(d)).sort()) {
+  const check = new URL(`./${dir}/data.check.mjs`, import.meta.url)
+  if (existsSync(check)) {
+    await import(check.href)
+    console.log(`${dir} data ok`)
+  }
+}

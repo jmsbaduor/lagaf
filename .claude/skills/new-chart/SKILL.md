@@ -37,7 +37,9 @@ Read that chart's file before writing. Why: its measures already sit on the grid
 ## 4. Numbers in facts.ts
 
 - Put the data and the rule that sizes it (px a point, cells a percent) in `facts.ts`, and assert it in `facts.check.mjs`: totals, counts, lengths on 4px and within 2px of exact.
-- Draw only numbers the request gives. Never invent, round or "illustrate" one; if one is missing, ask. Why: these charts state facts, and a drawn number that differs from the stated one makes the chart false.
+- Real data: draw only numbers the request gives; if one is missing, ask. Why: these charts state facts, and an invented number makes the chart false.
+- Demo data, only when the request asks for a demo or example: draw from `DEMO` in `facts.ts`, derive from it, or add numbers that contradict none of it, and assert each. Make it feel real (uneven, a few outliers, not suspiciously round). Why: the demo charts tell one story, and one chart that disagrees with another breaks it.
+- Every claim in the title, description or hint gets an assert that the data bears it out. Why: a statement is a number in words.
 
 ## 5. Layout
 
