@@ -13,8 +13,11 @@
   animation: spread-rise var(--viz-dur, 600ms) var(--viz-ease) var(--viz-delay, 0ms) both;
 }
 
-/* The heatmap's six steps, from the track to the lead, so every accent and mode gets its own ramp: pale to deep in
-   light, dark to bright in dark. A knob change recolours in 200ms; a reading dims in 150ms. */
+/* The heatmap's six steps, so every accent and mode gets its own ramp: pale to deep in light, dark to bright in dark.
+   Four even steps run from the track to the lead, and the top step goes on past the lead, toward the deep panel in
+   light and the ink in dark. In the default accent, six steps from the track to the lead alone came 8.6 apart in
+   light (OKLab x100) and the top two read as one; these are 10.7 to 15.1 apart in light and dark. A knob change
+   recolours in 200ms; a reading dims in 150ms. */
 .spread-cell {
   transition:
     background-color 200ms var(--viz-ease),
@@ -32,17 +35,17 @@
   background-color: var(--viz-track);
 }
 .spread-step-1 {
-  background-color: color-mix(in oklch, var(--viz-lead) 20%, var(--viz-track));
+  background-color: color-mix(in oklch, var(--viz-lead) 25%, var(--viz-track));
 }
 .spread-step-2 {
-  background-color: color-mix(in oklch, var(--viz-lead) 40%, var(--viz-track));
+  background-color: color-mix(in oklch, var(--viz-lead) 50%, var(--viz-track));
 }
 .spread-step-3 {
-  background-color: color-mix(in oklch, var(--viz-lead) 60%, var(--viz-track));
+  background-color: color-mix(in oklch, var(--viz-lead) 75%, var(--viz-track));
 }
 .spread-step-4 {
-  background-color: color-mix(in oklch, var(--viz-lead) 80%, var(--viz-track));
+  background-color: var(--viz-lead);
 }
 .spread-step-5 {
-  background-color: var(--viz-lead);
+  background-color: color-mix(in oklch, var(--viz-lead) 55%, light-dark(var(--viz-deep), var(--viz-ink)));
 }

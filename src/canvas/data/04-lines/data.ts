@@ -7,11 +7,14 @@ export const MONTHS = DEMO.months
 export const LAST = MONTHS.length - 1
 export const millions = (n: number) => `${n.toFixed(1)}M`
 
-/** The value axis is 544px tall (TOP to its zero, in parts.tsx). Every height is rounded to 4, so within 2px of exact. */
-export const AXIS = 544
+/**
+ * The value axis is 528px tall (from its zero at 792 up to the plot's top at 264, in parts.tsx). Every height is
+ * rounded to 4, so within 2px of exact.
+ */
+export const AXIS = 528
 const grid = (px: number) => Math.round(px / 4) * 4
 
-/** Agent share: 0 to 100% over the axis, so the quarter lines fall 136px apart, on the grid, and 100% is on TOP. */
+/** Agent share: 0 to 100% over the axis, so the quarter lines fall 132px apart, on the grid, and 100% is its top. */
 export const SHARE_PX = AXIS / 100
 export const SHARE = MONTHS.map((month, i) => ({
   month,

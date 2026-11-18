@@ -1,6 +1,6 @@
 import { useId, type CSSProperties } from "react"
 
-import { Choice, Choices, Frame, Header, Label, note, smallLabelText, TOP, useReading, wipe } from "@/canvas/kit"
+import { Choice, Choices, Frame, Header, Label, note, tickText, TOP, useReading, wipe, XAxis, YAxis } from "@/canvas/kit"
 import type { Knobs, Values } from "@/components/stage"
 import { cn } from "@/lib/utils"
 
@@ -33,14 +33,18 @@ const MEASURES = {
   },
 } as const
 
-// 24 hours by 7 days of 48px cells, 4 apart: 1244 wide from the 52px day column, so the grid ends on 1368.
+// 24 hours by 7 days of 48 by 64px cells, 4 apart: 1244 wide from the day column, so the grid ends on 1368, and 472
+// tall from TOP (both axes name time, so neither takes a name line). Hours tick under it; the legend's three lines
+// end on 828.
 const GRID_X = 124
-const GRID_Y = TOP + 32 // under the hours
+const GRID_Y = TOP
 const PITCH = 52
-const LEGEND_Y = GRID_Y + 7 * PITCH + 44 // 672
+const ROW = 68
+const GRID_B = GRID_Y + 7 * ROW - 4 // 704
+const LEGEND_Y = GRID_B + 60 // 764
 
 // The entrance is the day passing: one stepped wipe reveals the grid an hour at a time, left to right. It leaves no
-// clip behind, so focus rings on the edge cells show whole. Labels and the legend are there from the start.
+// clip behind, so focus rings on the edge cells show whole. Axes and the legend are there from the start.
 const SWEEP = {
   ...wipe(100, 600, 24),
   animationFillMode: "backwards",
@@ -64,36 +68,33 @@ export default function Rhythm({ measure = "Agent share" }: Partial<Values<typeo
         on={!!on}
       />
 
-      {/* Every third hour, centred over its column. */}
-      {Array.from({ length: 8 }, (_, i) => (
-        <p
-          key={i}
-          aria-hidden="true"
-          className={cn(smallLabelText, "absolute w-12 text-center text-viz-label")}
-          style={{ left: GRID_X + i * 3 * PITCH, top: TOP }}
-        >
-          {hourName(i * 3)}
-        </p>
-      ))}
-      <div aria-hidden="true" className="absolute left-[72px] flex w-12 flex-col gap-1" style={{ top: GRID_Y }}>
-        {WEEKDAYS.map((d) => (
-          <Label key={d} className="h-12 leading-12">
-            {d}
-          </Label>
-        ))}
-      </div>
+      {/* Days on their rows and every third hour on its column; the read cell's day and hour turn to the ink. */}
+      <YAxis
+        ticks={WEEKDAYS.map((d, i) => ({ at: GRID_Y + i * ROW, label: d, on: on?.day === i }))}
+        from={GRID_X}
+        band={ROW - 4}
+      />
+      <XAxis
+        ticks={Array.from({ length: 8 }, (_, i) => ({
+          at: GRID_X + i * 3 * PITCH,
+          label: hourName(i * 3),
+          on: on?.hour === i * 3,
+        }))}
+        y={GRID_B}
+        band={PITCH - 4}
+      />
 
       <div className="viz-wipe absolute" style={{ left: GRID_X, top: GRID_Y, ...SWEEP }}>
-        <Choices legend="Read an hour" className="grid grid-cols-[repeat(24,48px)] gap-1">
+        <Choices legend="Read an hour" className="grid grid-cols-[repeat(24,48px)] grid-rows-[repeat(7,64px)] gap-1">
           {HOURS.map((c, i) => (
             <Choice
               key={i}
               name={name}
               value={String(i)}
-              // The cell is 48px; its hit area runs 2px into each gap, so moving across the grid never drops a reading.
+              // The cell's hit area runs 2px into each gap, so moving across the grid never drops a reading.
               // The read cell is ringed in the ink (spreads.css), so even a pale one stands out from the rest.
               className={cn(
-                "spread-cell size-12 before:absolute before:-inset-0.5",
+                "spread-cell before:absolute before:-inset-0.5 has-[:focus-visible]:outline-offset-1",
                 `spread-step-${stepOf(cellValue(c, m.key), steps)}`,
                 dim(i) && "opacity-30"
               )}
@@ -118,11 +119,7 @@ export default function Rhythm({ measure = "Agent share" }: Partial<Values<typeo
         </div>
         <div className="relative mt-2 h-4">
           {steps.slice(1).map((t, k) => (
-            <p
-              key={t}
-              className={cn(smallLabelText, "absolute top-0 w-11 text-center text-viz-label")}
-              style={{ left: (k + 1) * PITCH - 24 }}
-            >
+            <p key={t} className={cn(tickText, "absolute top-0 w-11 text-center")} style={{ left: (k + 1) * PITCH - 24 }}>
               {m.edge(t)}
             </p>
           ))}

@@ -34,6 +34,8 @@ d.VIEWS.forEach((m, i) => {
   assert.equal(m.agents > m.people, i >= d.PASSED, `${m.month}: agents ${m.agents}M, people ${m.people}M`)
   assert.equal(m.agentsH > m.peopleH, i >= d.PASSED, `${m.month}: the drawn lines cross in the wrong month`)
 })
+// April's two points sit 16 apart, edge to edge, so the agents' paper ring is what parts them.
+assert.equal(d.VIEWS[d.PASSED].agentsH - d.VIEWS[d.PASSED].peopleH, 16)
 // The share line passes 50% in the same month, so the two charts tell one story.
 assert.ok(d.SHARE[d.PASSED - 1].share < 50 && d.SHARE[d.PASSED].share > 50)
 // "agents grew 9× while people held level": the growth chart's 9× and 1×; people stay within 2% of their mean.

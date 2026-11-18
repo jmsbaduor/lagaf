@@ -1,45 +1,48 @@
-// Row 04's shared parts: month columns to read, a value axis, and a series that draws in. They move to the kit once
-// another row uses them. The conventions they set:
-// - Layout: six month columns of 192 from 144 to 1296. Months centre at 240 + 192i, on the 8px grid, so a point's
-//   edges land on 4. Values rise from BASE (776) to TOP; month names sit at 800 to 816; nothing goes below 828.
-//   Tick labels are right-aligned at 72 to 120; the last point's label starts 24 right of its centre.
-// - Hairlines: 1px in viz-hatch, crispEdges, filling the pixel row under their grid line.
-// - Lines: 4px strokes (one grid unit), butt caps, miter joins. Sloped lines anti-alias (geometricPrecision); steps
-//   and points are crispEdges, since all their edges are whole pixels.
-// - Points: 16px squares (the Key's swatch), one a month. The read one stays solid; the rest fade toward the paper.
-// - Entrance: one clip-path animation (viz-draw) reveals a series' lines and points left to right, so x is time and
-//   two lines cross on screen when they cross in the data. The last point's label fades in as the reveal reaches it.
-// - Text is HTML (mono Labels), so check:browser holds every label to the grid.
-import type { CSSProperties, ReactNode } from "react"
+// Row 04's month layout, shared by its three charts; the axes, Series and Point are the kit's (docs/charts.md,
+// "SVG and plots").
+// - Six month columns of 192 from 144 to 1296. Months centre at 240 + 192i, on the 8px grid, so a point's edges land
+//   on 4. Values rise from BASE (792) to PLOT_TOP (264), under the y axis's name on TOP; month ticks sit 12 under
+//   BASE, ending at 820.
+// - Lines are 4px strokes (one grid unit), butt caps, miter joins. Sloped lines anti-alias (geometricPrecision);
+//   steps are crispEdges, since all their edges are whole pixels.
+// - Entrance: the Series wipe reveals the lines and points left to right; the last point's label fades in as the
+//   reveal reaches it.
+import type { ReactNode } from "react"
 
-import { band, countAt, delay, Label, row, TOP, useReading } from "@/canvas/kit"
 import { cn } from "@/lib/utils"
-
-import "./lines.css"
+import { countAt, delay, focusRing, Point, Series as Draw, TOP, useReading, XAxis, YAxis } from "@/canvas/kit"
 
 export const COL = 192
 const PLOT_L = 144
 const PLOT_R = PLOT_L + 6 * COL
-export const BASE = 776
-const POINT = 16
-const NAMES_BOTTOM = 816
+/** The plot's top: 32 under the y axis's name, so the highest tick label clears it by 8. */
+export const PLOT_TOP = TOP + 32
+export const BASE = 792
+/** The Series' box runs 12 past the first and last points' centres, so it holds their 2px rings. */
+const PAD = 12
 
 export const monthX = (i: number) => PLOT_L + COL / 2 + i * COL
 const y = (h: number) => BASE - h
 
-/** When a Series' reveal reaches month i's point (its left edge), in ms after the Series starts. */
+/** When a Series' reveal reaches month i's point, in ms after the Series starts. */
 export const litAt = (i: number, count: number, duration: number) =>
-  countAt(i * COL, (count - 1) * COL + POINT, duration)
+  countAt(i * COL, (count - 1) * COL + 2 * PAD, duration)
+
+/** The value axis: its name on TOP, a tick and gridline at each height (zero included). */
+export function Ticks({ name, ticks }: { name: string; ticks: readonly { h: number; label: string }[] }) {
+  return <YAxis name={name} ticks={ticks.map((t) => ({ at: y(t.h), label: t.label }))} from={PLOT_L} to={PLOT_R} />
+}
 
 /**
- * The months as reading columns: each is a focusable column of the plot with its name at the foot. Read, it tints
- * as a row's band does and its name turns to the ink; the others mute. `say(i)` is the reading.
+ * The months as reading columns: each is a focusable column of the plot, its tick at the foot. Read, its tick turns
+ * to the ink and the other months' points fade; there's no tint, so the lines stay the loudest thing. `say(i)` is
+ * the reading.
  */
 export function Months({
   name,
   months,
   say,
-  reading: { active, bind, dim },
+  reading: { active, bind },
 }: {
   name: string
   months: readonly string[]
@@ -47,76 +50,31 @@ export function Months({
   reading: ReturnType<typeof useReading<number>>
 }) {
   return (
-    <ul aria-label={name}>
-      {months.map((m, i) => (
-        <li
-          key={m}
-          tabIndex={0}
-          aria-label={say(i)}
-          className={cn(row, "absolute")}
-          style={{ left: monthX(i) - COL / 2, top: TOP, width: COL, height: NAMES_BOTTOM - TOP }}
-          {...bind(i)}
-        >
-          <span className={cn(band, "inset-x-0")} />
-          <Label
-            aria-hidden="true"
-            className={cn(
-              "absolute inset-x-0 bottom-0 text-center transition-colors",
-              active === i && "text-foreground",
-              dim(i) && "text-muted-foreground"
-            )}
-          >
-            {m}
-          </Label>
-        </li>
-      ))}
-    </ul>
-  )
-}
-
-/** The value axis: a hairline per tick across the plot, zero included, each labelled at the left. Structure: it doesn't move. */
-export function Ticks({ ticks }: { ticks: readonly { h: number; label: string }[] }) {
-  return (
-    <div aria-hidden="true">
-      <svg className="pointer-events-none absolute inset-0" width={1440} height={900}>
-        {ticks.map((t) => (
-          <line
-            key={t.label}
-            x1={PLOT_L}
-            x2={PLOT_R}
-            y1={y(t.h) + 0.5}
-            y2={y(t.h) + 0.5}
-            stroke="var(--viz-hatch)"
-            shapeRendering="crispEdges"
+    <>
+      <XAxis y={BASE} ticks={months.map((m, i) => ({ at: monthX(i), label: m, on: active === i }))} />
+      <ul aria-label={name}>
+        {months.map((m, i) => (
+          <li
+            key={m}
+            tabIndex={0}
+            aria-label={say(i)}
+            className={cn("absolute", focusRing, "focus-visible:-outline-offset-2")}
+            style={{ left: monthX(i) - COL / 2, top: PLOT_TOP, width: COL, height: BASE + 28 - PLOT_TOP }}
+            {...bind(i)}
           />
         ))}
-      </svg>
-      {ticks.map((t) => (
-        <Label key={t.label} className="absolute left-[72px] w-12 text-right normal-case" style={{ top: y(t.h) - 8 }}>
-          {t.label}
-        </Label>
-      ))}
-    </div>
+      </ul>
+    </>
   )
 }
 
-/**
- * The SVG a series draws in, spanning its first point's left edge to its last point's right edge, so the reveal
- * runs month by month. Its user units are the frame's px. Put every line and point of the chart in one Series.
- */
+/** The Series for `count` months: put every line and point of the chart in it. */
 export function Series({ count, at, duration, children }: { count: number; at: number; duration: number; children: ReactNode }) {
-  const left = monthX(0) - POINT / 2
-  const width = (count - 1) * COL + POINT
-  const height = BASE + POINT / 2 - TOP
+  const x = monthX(0) - PAD
   return (
-    <svg
-      aria-hidden="true"
-      className="viz-draw pointer-events-none absolute"
-      style={{ left, top: TOP, width, height, ...delay(at, duration) }}
-      viewBox={`${left} ${TOP} ${width} ${height}`}
-    >
+    <Draw x={x} y={TOP} w={(count - 1) * COL + 2 * PAD} h={BASE + PAD - TOP} at={at} duration={duration}>
       {children}
-    </svg>
+    </Draw>
   )
 }
 
@@ -139,21 +97,9 @@ export function Line({ heights, step = false, className }: { heights: readonly n
   )
 }
 
-/** A 16px square on each month's height, in `color` (a role: var(--viz-lead)). */
+/** A point on each month's height, in `color` (a role: var(--viz-lead)). */
 export function Points({ heights, color, dim }: { heights: readonly number[]; color: string; dim: (i: number) => boolean }) {
-  return heights.map((h, i) => (
-    <rect
-      key={i}
-      x={monthX(i) - POINT / 2}
-      y={y(h) - POINT / 2}
-      width={POINT}
-      height={POINT}
-      shapeRendering="crispEdges"
-      data-dim={dim(i) || undefined}
-      className="viz-point"
-      style={{ "--px": color } as CSSProperties}
-    />
-  ))
+  return heights.map((h, i) => <Point key={i} x={monthX(i)} y={y(h)} color={color} dim={dim(i)} />)
 }
 
 /** The last point's value, 32/40, centred on it and 24 to its right; it fades in as the Series reaches the point. */

@@ -5,7 +5,7 @@ import { LAST, millions, MONTHS, SHARE, SHARE_TICKS } from "./data"
 import { EndLabel, Line, Months, Points, Series, Ticks } from "./parts"
 
 // The entrance is the line: it draws from December to May, lighting each month as it reaches it, and May's share
-// fades in as the line arrives. The axis and month names are structure, so they don't move.
+// fades in as the line arrives. The axes are structure, so they don't move.
 const AT = 100
 const DRAW = 700
 
@@ -28,8 +28,7 @@ export default function AgentShare() {
         on={active !== null}
       />
 
-      <Months name="Agent share of page views by month" months={MONTHS} say={say} reading={reading} />
-      <Ticks ticks={SHARE_TICKS} />
+      <Ticks name="Agents’ share of views" ticks={SHARE_TICKS} />
       <Series count={MONTHS.length} at={AT} duration={DRAW}>
         <Line heights={heights} className="stroke-viz-lead" />
         <Points heights={heights} color="var(--viz-lead)" dim={dim} />
@@ -37,6 +36,7 @@ export default function AgentShare() {
       <EndLabel h={SHARE[LAST].h} count={MONTHS.length} at={AT} duration={DRAW} dim={dim(LAST)}>
         {pct(SHARE[LAST].share)}
       </EndLabel>
+      <Months name="Agent share of page views by month" months={MONTHS} say={say} reading={reading} />
     </Frame>
   )
 }
