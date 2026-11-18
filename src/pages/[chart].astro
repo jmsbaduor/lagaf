@@ -1,0 +1,19 @@
+---
+import Layout from "@/layouts/main.astro"
+import MarkLoader from "@/components/MarkLoader.astro"
+import { ChartStage } from "@/canvas/chart-stage"
+import { charts } from "@/canvas/registry"
+
+export function getStaticPaths() {
+  return charts.map((c) => ({ params: { chart: c.slug }, props: { title: c.title, idea: c.idea } }))
+}
+
+const { chart } = Astro.params
+const { title, idea } = Astro.props
+---
+
+<Layout title={`${title} · lagaf`} description={idea} image={`/og/${chart}.png`}>
+  <ChartStage client:only="react" initial={chart}>
+    <MarkLoader slot="fallback" />
+  </ChartStage>
+</Layout>

@@ -1,0 +1,43 @@
+---
+// A 1200 by 630 share card for each chart and the home page. scripts/images.mjs renders these to public/og/*.png.
+import "@/styles/global.css"
+import { charts } from "@/canvas/registry"
+
+export function getStaticPaths() {
+  const home = { params: { card: "home" }, props: { title: "Charts in your colours", line: "Themable, animated infographic charts. Pick a colour and every chart follows." } }
+  return [home, ...charts.map((c) => ({ params: { card: c.slug }, props: { title: c.title, line: c.idea } }))]
+}
+
+const { title, line } = Astro.props
+---
+
+<html lang="en" class="light" style="color-scheme: light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <main class="relative flex h-[630px] w-[1200px] flex-col justify-between overflow-hidden bg-canvas p-20 text-fg">
+      <p class="flex items-end gap-4 text-[56px] leading-none font-medium tracking-[-0.035em]">
+        <svg viewBox="0 0 16 16" width="40" height="40" shape-rendering="crispEdges" class="mark" aria-hidden="true">
+          <rect class="mark-ink" x="0" y="9" width="7" height="7"></rect>
+          <rect class="mark-ink" x="9" y="0" width="7" height="7"></rect>
+          <rect class="mark-accent mark-a" x="0" y="9" width="7" height="7"></rect>
+          <rect class="mark-accent mark-b" x="9" y="0" width="7" height="7"></rect>
+        </svg>
+        <span class="translate-y-[0.06em]">lagaf</span>
+      </p>
+      <div class="flex max-w-[720px] flex-col gap-4">
+        <h1 class="text-[72px] leading-[76px] font-normal tracking-[-0.03em] text-balance">{title}</h1>
+        <p class="text-[32px] leading-[40px] text-pretty text-fg-muted">{line}</p>
+      </div>
+      <svg viewBox="0 0 16 16" width="256" height="256" shape-rendering="crispEdges" class="mark absolute right-20 bottom-20" aria-hidden="true">
+        <rect class="mark-ink" x="0" y="9" width="7" height="7"></rect>
+        <rect class="mark-ink" x="9" y="0" width="7" height="7"></rect>
+        <rect class="mark-accent mark-a" x="0" y="9" width="7" height="7"></rect>
+        <rect class="mark-accent mark-b" x="9" y="0" width="7" height="7"></rect>
+      </svg>
+    </main>
+  </body>
+</html>

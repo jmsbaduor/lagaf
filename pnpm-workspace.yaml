@@ -1,0 +1,10 @@
+allowBuilds:
+  '@central-icons-react/round-filled-radius-2-stroke-1.5': true
+  '@central-icons-react/round-outlined-radius-2-stroke-1.5': true
+  esbuild: true
+  sharp: true
+minimumReleaseAgeExclude:
+  - '@ui-sdk/core@0.1.0-beta.1'
+  - '@ui-sdk/react@0.1.0-beta.1'
+packages:
+  - .

@@ -1,0 +1,69 @@
+/*
+ * Marks for row 01. A mark is an SVG of square cells on a 16-unit box, so at 16 px a unit is a pixel.
+ * Fills are the chart roles, so a mark re-skins with the accent and the theme.
+ * The loader is the only loop: it runs on .mk-on, and reduced motion holds the mark at rest.
+ */
+.mk-lead { fill: var(--viz-lead); }
+.mk-ink { fill: var(--viz-ink); }
+.mk-deep { fill: var(--viz-deep); }
+.mk-panel { fill: var(--viz-panel); }
+.mk-track { fill: var(--viz-track); }
+/* The Timeline field's ramp steps between panel, lead and deep (pixels.css, px-ramp-2 and -4). */
+.mk-r2 { fill: color-mix(in oklch, var(--viz-panel) 50%, var(--viz-lead)); }
+.mk-r4 { fill: color-mix(in oklch, var(--viz-lead) 45%, var(--viz-deep)); }
+.mk-slot { fill: none; stroke: var(--viz-hatch); }
+
+.mk-cell {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+/* A cell that only shows while the loader runs. */
+.mk-cell[data-rest="off"] { opacity: 0; }
+
+.mk-on .mk-cell {
+  animation-duration: var(--mk-dur);
+  animation-delay: var(--mk-at, 0ms);
+  animation-timing-function: var(--viz-ease);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+.mk-on[data-loop="sweep"] .mk-cell { animation-name: mk-sweep; }
+.mk-on[data-loop="fill"] .mk-cell { animation-name: mk-fill; }
+.mk-on[data-loop="glow"] .mk-cell { animation-name: mk-glow; }
+.mk-on[data-loop="scrub"] .mk-cell[data-move] {
+  animation-name: mk-scrub;
+  animation-timing-function: var(--viz-ease);
+}
+
+/* Cells light in turn, hold, and dim in turn to a ghost, so the shape never leaves. */
+@keyframes mk-sweep {
+  0% { opacity: 0.16; }
+  15%, 55% { opacity: 1; }
+  75%, 100% { opacity: 0.16; }
+}
+/* A cell fills from its foot, holds, then clears: one cell is always empty, and the gap travels. */
+@keyframes mk-fill {
+  0% { scale: 1 0; opacity: 1; }
+  15%, 75% { scale: 1 1; opacity: 1; }
+  85%, 100% { scale: 1 1; opacity: 0; }
+}
+/* The accent passes from cell to cell. */
+@keyframes mk-glow {
+  0% { opacity: 0; }
+  20%, 50% { opacity: 1; }
+  70%, 100% { opacity: 0; }
+}
+/* The point reads along its axis: centre, right, centre, left, centre. */
+@keyframes mk-scrub {
+  0%, 12% { translate: 0 0; }
+  25%, 37% { translate: var(--mk-pitch) 0; }
+  50%, 62% { translate: 0 0; }
+  75%, 87% { translate: calc(-1 * var(--mk-pitch)) 0; }
+  100% { translate: 0 0; }
+}
+
+/* Reduced motion (the OS or the stage's switch): no loop, the mark at rest. The kit's 1ms rule would strobe a loop. */
+@media (prefers-reduced-motion: reduce) {
+  .mk-on .mk-cell { animation-name: none !important; }
+}
+:root[data-motion="reduce"] .mk-on .mk-cell { animation-name: none !important; }

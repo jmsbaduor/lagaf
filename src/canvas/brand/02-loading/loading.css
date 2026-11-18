@@ -1,0 +1,40 @@
+/*
+ * Row 02, loading states. In the components layer, so a utility on the same element (bg-viz-lead) wins.
+ * Looping motion exists only where motion is welcome: reduced motion (the OS or the stage's switch) gets a still
+ * skeleton, since the kit's reduced-motion rule would turn a loop into a 1 ms flicker. The busy indicator is the
+ * mark's own loader (src/components/Mark.tsx), styled in global.css, section 8.
+ */
+@layer components {
+  /* A placeholder: a block in the empty-track tone where a label, a number or a mark will land.
+     It leaves on a transition, so a knob flipped mid-swap turns it around. */
+  .ld-slot {
+    background-color: var(--viz-track);
+    transition: opacity 150ms var(--viz-ease);
+  }
+  .ld-slot[data-gone] {
+    opacity: 0;
+  }
+
+  /* A filled cell arriving: it starts from the track tone it waited in. */
+  .ld-fill {
+    animation: ld-fill 300ms var(--viz-ease) var(--viz-delay, 0ms) backwards;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* Waiting: a slow breath, opacity only. --wave offsets each slot so the breath crosses a chart left to right. */
+    :root:not([data-motion="reduce"]) .ld-wait {
+      animation: ld-breathe 2400ms ease-in-out var(--wave, 0ms) infinite;
+    }
+  }
+}
+
+@keyframes ld-fill {
+  from {
+    background-color: var(--viz-track);
+  }
+}
+@keyframes ld-breathe {
+  50% {
+    opacity: 0.5;
+  }
+}

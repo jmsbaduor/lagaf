@@ -1,0 +1,19 @@
+---
+import Layout from "@/layouts/main.astro"
+import MarkLoader from "@/components/MarkLoader.astro"
+import { ChartStage } from "@/canvas/chart-stage"
+import { sets } from "@/canvas/registry"
+
+export function getStaticPaths() {
+  return sets.brand.items.map((c) => ({ params: { frame: c.slug }, props: { title: c.title, idea: c.idea } }))
+}
+
+const { frame } = Astro.params
+const { title, idea } = Astro.props
+---
+
+<Layout title={`${title} · lagaf brand`} description={idea}>
+  <ChartStage client:only="react" set="brand" initial={frame}>
+    <MarkLoader slot="fallback" />
+  </ChartStage>
+</Layout>

@@ -1,56 +1,14 @@
 ---
 import Layout from "@/layouts/main.astro"
-import { BarBreakdown, type Datum } from "@/components/infographic/bar-breakdown"
-import { ThemeSwitcher } from "@/components/theme-switcher"
-import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import MarkLoader from "@/components/MarkLoader.astro"
+import { ChartStage } from "@/canvas/chart-stage"
+import { charts } from "@/canvas/registry"
 
-// Illustrative figures, not sourced.
-const water: Datum[] = [
-  { label: "Shower", value: 38 },
-  { label: "Toilet", value: 31 },
-  { label: "Taps", value: 24 },
-  { label: "Laundry", value: 17 },
-  { label: "Dishes", value: 9 },
-  { label: "Garden", value: 7 },
-]
+const first = charts[0]
 ---
 
-<Layout
-  title="Where household water goes"
-  description="How many litres one person uses at home on a typical day, split by use."
->
-  <main class="mx-auto flex max-w-2xl flex-col gap-10 px-4 py-12 sm:py-20">
-    <header class="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-      <div class="flex max-w-prose flex-col gap-3">
-        <h1 class="font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-          Where household water goes
-        </h1>
-        <p class="text-pretty text-muted-foreground">
-          How many litres one person uses at home on a typical day, split by use.
-        </p>
-      </div>
-      <ThemeSwitcher client:load />
-    </header>
-
-    <Card>
-      <CardHeader>
-        <CardTitle>Daily use per person</CardTitle>
-        <CardDescription>Litres, by fixture</CardDescription>
-        <CardAction>
-          <Badge variant="secondary">Sample data</Badge>
-        </CardAction>
-      </CardHeader>
-      <CardContent>
-        <BarBreakdown client:visible data={water} unit="L" />
-      </CardContent>
-    </Card>
-  </main>
+<Layout title="lagaf" image="/og/home.png">
+  <ChartStage client:only="react" initial={first.slug}>
+    <MarkLoader slot="fallback" />
+  </ChartStage>
 </Layout>

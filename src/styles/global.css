@@ -1,140 +1,1080 @@
+/* lagaf design system: one stylesheet for the stage and every chart, styling ui-sdk's parts.
+   Warm, light-first, flat: white controls with one light edge on a warm paper page, black primary action, one accent.
+   Surfaces: Tailwind `olive`. Ink: Tailwind `neutral`. Accents: any Tailwind hue, default "lumina" (lime and green).
+   Chart roles (section 6) derive from the accent, so any accent re-skins every chart. Type: Geist Sans, Geist Mono. */
+
+/* 0. Layer order. Must be the first statement of the FIRST stylesheet the page loads.
+      web.css (ui-sdk's default look) sits ABOVE Tailwind's base (Preflight) and BELOW components/utilities.
+      It is imported into our own `web` layer: at runtime ui-sdk prepends <style>@layer ui-sdk{...}</style> to
+      <head>, which makes `ui-sdk` the FIRST layer whatever is declared here, so web.css left in it would fall
+      under Preflight (switches lose their border and fill) on any page that mounts a popup or collapsible. */
+@layer ui-sdk, theme, base, web, components, utilities;
+
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import "@ui-sdk/core/web.css" layer(web);
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist-mono";
-@import "./themes.css";
 
-@custom-variant dark (&:is(.dark *));
+/* `dark:` follows the class the starter's THEME_INIT_SCRIPT already puts on <html>. */
+@custom-variant dark (&:where(.dark, .dark *));
 
+/* Reduced motion answers to the OS or to the stage's switch (data-motion="reduce" on <html>).
+   Movement goes under motion-safe, its replacement under motion-reduce; never a raw media query. */
+@custom-variant motion-reduce {
+  @media (prefers-reduced-motion: reduce) { @slot; }
+  &:where([data-motion="reduce"], [data-motion="reduce"] *) { @slot; }
+}
+@custom-variant motion-safe {
+  @media (prefers-reduced-motion: no-preference) {
+    &:not(:where([data-motion="reduce"], [data-motion="reduce"] *)) { @slot; }
+  }
+}
+
+/* 1. Scheme switch. light-dark() needs color-scheme; a build that rewrites light-dark() only sees
+      CSS rules (not the inline style the init script sets). Switch on :root only, never nested. */
+:root { color-scheme: light dark; }
+:root.light { color-scheme: light; }
+:root.dark { color-scheme: dark; }
+:root.dark {
+  /* In dark the edge is drawn inside the shape: an outer ring sits on top of the drop shadow below it, which darkens
+     its bottom half and makes the bottom edge look cut. Inside, the ring is even all round and the shadow stays below. */
+  --shadow-part-layer-1: 0 1px 2px oklch(0 0 0 / 0.35);
+  --shadow-part-border: inset 0 0 0 1px oklch(1 0 0 / 0.08);
+  --shadow-part-edge: inset 0 0 0 1px var(--color-line-strong);
+} /* light-dark() takes colours only, not the spread */
+
+/* 2. Tokens -> utilities (bg-canvas, bg-tray, bg-surface-1, text-fg-muted, border-line, shadow-weak, rounded-card ...) */
+@theme {
+  /* Sans and Mono: @fontsource-variable. Serif: self-hosted below (one weight, 400). */
+  --font-sans:  "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:  "Geist Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Elevation ladder, after Mentha: each step up is lighter in dark (and the shadow does the lifting in light).
+     sunken-2 < sunken-1 < canvas (surface 0) < surface-1 < surface-2 < surface-3. A thing sits one step above its ground.
+                                    light                                                        dark */
+  --color-sunken-2:    light-dark(color-mix(in oklab, var(--color-olive-200) 50%, var(--color-olive-300)), oklch(11% 0.004 107)); /* deepest recess */
+  --color-sunken-1:    light-dark(var(--color-olive-200), oklch(13% 0.005 107));                     /* recessed tray: code, a keyboard deck */
+  --color-canvas:      light-dark(var(--color-olive-50), var(--color-olive-950)); /* surface 0: the page and every chart's paper. lagaf: olive-50, nearest to Lumina's #faf8f5 */
+  --color-surface-1:   light-dark(var(--color-white), var(--color-olive-900));                       /* the card */
+  --color-surface-2:   light-dark(var(--color-white), oklch(30.5% 0.016 107));                       /* raised: button, field, chip, thumb; one step above a well on a card, too */
+  --color-surface-3:   light-dark(var(--color-white), oklch(26% 0.014 107));                         /* top: menu, tooltip, toast (+ shadow-strong); one step over the card, not more */
+  --color-sheet:       light-dark(color-mix(in oklab, var(--color-olive-100) 55%, var(--color-white)), var(--color-olive-900)); /* dialog, alert, drawer: a step below white, so fields and buttons inside sit up (Mentha: dialog is surface 0) */
+  --color-tray:        light-dark(var(--color-olive-200), var(--color-sunken-1));                   /* legacy name for a recessed tray */
+
+  /* Tints: translucent, so they always land one step from whatever they sit on (darker in light, lighter in dark).
+     A well is a group you act on; fills are hover and pressed; raised is the selected pill inside a track. */
+  --color-well:        light-dark(oklch(0.2 0.005 60 / 0.045), oklch(1 0 0 / 0.05));
+  --color-fill:        light-dark(oklch(0.2 0.005 60 / 0.04), oklch(1 0 0 / 0.06));
+  --color-fill-strong: light-dark(oklch(0.2 0.005 60 / 0.08), oklch(1 0 0 / 0.1));
+  --color-raised:      light-dark(var(--color-white), oklch(1 0 0 / 0.1));
+
+  /* lines */
+  --color-line:        light-dark(oklch(0.2 0.005 60 / 0.10), oklch(1 0 0 / 0.09)); /* hairline: card edge, divider. Translucent, so it reads the same on any surface */
+  --color-line-strong: light-dark(oklch(0.2 0.005 60 / 0.18), oklch(1 0 0 / 0.16)); /* control edge: field, switch, thumb. Light on purpose; fields also carry a label */
+  --color-guide:       color-mix(in oklab, var(--color-fg) 16%, var(--color-surface-1)); /* tree and guide lines on the card: opaque, so joins never double up */
+
+  /* ink */
+  --color-fg:          light-dark(var(--color-neutral-950), var(--color-neutral-50));
+  --color-fg-muted:    light-dark(var(--color-neutral-600), var(--color-neutral-400));
+  --color-fg-subtle:   light-dark(color-mix(in oklab, var(--color-neutral-500), var(--color-neutral-600)),
+                                  color-mix(in oklab, var(--color-neutral-400) 85%, var(--color-neutral-500)));
+  --color-primary:     var(--color-fg);        /* THE action colour: black (near-white in dark) */
+  --color-primary-fg:  var(--color-surface-1);
+  --color-danger:      light-dark(var(--color-red-700), var(--color-red-400));
+
+  /* Elevation and radii follow Mentha (@mintlify/mentha 0.1.91). Edges are drawn by shadow parts,
+     not borders: a hairline ring plus an inner light ring, under 1-3 soft drop layers. */
+  --hairline: 0.5px;
+  --shadow-part-border: 0 0 0 1px var(--color-line);
+  --shadow-part-inset:  0 0 #0000; /* the inner light bevel is gone: flat surfaces, one edge */
+  --shadow-part-layer-1: 0 1px 1px oklch(0 0 0 / 0.03);
+  --shadow-part-layer-2: 0 6px 12px -6px light-dark(oklch(0 0 0 / 0.06), oklch(0 0 0 / 0.3));
+  --shadow-part-layer-3: 0 8px 4px -2px light-dark(oklch(0 0 0 / 0.02), oklch(0 0 0 / 0.05));
+  --shadow-weak:   var(--shadow-part-layer-1), var(--shadow-part-border), var(--shadow-part-inset); /* buttons, chips, inputs */
+  --shadow-base:   var(--shadow-part-layer-1), var(--shadow-part-border); /* the card: an edge and the faintest lift (Mentha's weak level) */
+  --shadow-strong: var(--shadow-part-layer-3), var(--shadow-part-layer-2), var(--shadow-part-layer-1), var(--shadow-part-border), var(--shadow-part-inset); /* overlays */
+
+  /* Mentha's radius scale: rounded-1 ... rounded-10 (px). Nested radius = outer radius - inset. */
+  --radius-xs: 2px; --radius-sm: 4px; --radius-md: 6px; --radius-lg: 8px; --radius-xl: 10px;
+  --radius-2xl: 10px; --radius-3xl: 10px; --radius-4xl: 10px; /* Tailwind's names, snapped to the same scale */
+  --radius-1: 1px; --radius-2: 2px; --radius-3: 3px; --radius-4: 4px;
+  --radius-6: 6px; --radius-8: 8px; --radius-10: 10px;
+  --radius-chip: 6px;     /* small chip, menu item */
+  --radius-control: 8px;  /* button, input, well, segmented item: softer, after Relume */
+  --radius-group: 10px;   /* segmented control: 8 + 2px inset */
+  --radius-card: 16px;    /* the card, dialog */
+  --radius-well: 12px;    /* a grey container inside a card: 8px button + its 4px inset, so they run parallel */
+  --radius-shell: 20px;   /* a card that holds wells: 12px well + the card's 8px padding, so a well at the edge runs parallel */
+  --radius-tray: 20px;    /* 16 + 4px tray inset (p-1) */
+  /* Card insets. Content sits --card-pad in; an action row sits --card-edge in, so a control in the corner is
+     concentric with the card: card-edge = radius-card - radius-control. */
+  --spacing-card-pad: 12px;
+  --spacing-card-edge: 8px;
+}
+
+/* 3. Accent: small and saturated (dot, ring, one art panel) - never the primary action.
+      `inline` so utilities read the ramp of the nearest [data-accent], not :root's. */
 @theme inline {
-    --font-heading: var(--brand-font-heading);
-    --font-sans: var(--brand-font-sans);
-    --font-mono: var(--brand-font-mono);
-    --font-data: var(--brand-font-data);
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
-    --color-ring: var(--ring);
-    --color-input: var(--input);
-    --color-border: var(--border);
-    --color-destructive: var(--destructive);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-    --color-foreground: var(--foreground);
-    --color-background: var(--background);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+  --color-accent:      var(--accent-solid); /* dot, ring, accent text on the card */
+  --color-accent-fg:   var(--accent-on);    /* text/icon on the solid accent */
+  --color-accent-soft: var(--accent-soft);  /* tinted panel behind accent text */
+  --color-accent-50: var(--accent-50);   --color-accent-100: var(--accent-100); --color-accent-200: var(--accent-200);
+  --color-accent-300: var(--accent-300); --color-accent-400: var(--accent-400); --color-accent-500: var(--accent-500);
+  --color-accent-600: var(--accent-600); --color-accent-700: var(--accent-700); --color-accent-800: var(--accent-800);
+  --color-accent-900: var(--accent-900); --color-accent-950: var(--accent-950);
 }
 
+/* Re-declared on every [data-accent] so each scope resolves against its own ramp.
+   700 + white (light) and 400 + neutral-950 (dark) reach 4.5:1 for all 17 Tailwind hues. */
+:root, [data-accent] {
+  --accent-solid: light-dark(var(--accent-700), var(--accent-400));
+  --accent-on:    light-dark(var(--color-white), var(--color-neutral-950));
+  --accent-soft:  light-dark(var(--accent-100), var(--accent-950));
+  --ui-ring: var(--accent-solid);
+  --ui-ring-border: var(--accent-solid);
+}
+
+/* One line per Tailwind hue: <div data-accent="violet"> re-points the whole 50...950 ramp. */
+:root, [data-accent="lumina"] { --accent-50: var(--color-lime-50); --accent-100: var(--color-lime-100); --accent-200: var(--color-lime-200); --accent-300: var(--color-lime-300); --accent-400: var(--color-lime-400); --accent-500: var(--color-green-500); --accent-600: var(--color-green-600); --accent-700: var(--color-green-700); --accent-800: var(--color-green-800); --accent-900: var(--color-green-900); --accent-950: var(--color-green-950); }
+[data-accent="lime"] { --accent-50: var(--color-lime-50); --accent-100: var(--color-lime-100); --accent-200: var(--color-lime-200); --accent-300: var(--color-lime-300); --accent-400: var(--color-lime-400); --accent-500: var(--color-lime-500); --accent-600: var(--color-lime-600); --accent-700: var(--color-lime-700); --accent-800: var(--color-lime-800); --accent-900: var(--color-lime-900); --accent-950: var(--color-lime-950); }
+[data-accent="red"] { --accent-50: var(--color-red-50); --accent-100: var(--color-red-100); --accent-200: var(--color-red-200); --accent-300: var(--color-red-300); --accent-400: var(--color-red-400); --accent-500: var(--color-red-500); --accent-600: var(--color-red-600); --accent-700: var(--color-red-700); --accent-800: var(--color-red-800); --accent-900: var(--color-red-900); --accent-950: var(--color-red-950); }
+[data-accent="orange"] { --accent-50: var(--color-orange-50); --accent-100: var(--color-orange-100); --accent-200: var(--color-orange-200); --accent-300: var(--color-orange-300); --accent-400: var(--color-orange-400); --accent-500: var(--color-orange-500); --accent-600: var(--color-orange-600); --accent-700: var(--color-orange-700); --accent-800: var(--color-orange-800); --accent-900: var(--color-orange-900); --accent-950: var(--color-orange-950); }
+[data-accent="amber"] { --accent-50: var(--color-amber-50); --accent-100: var(--color-amber-100); --accent-200: var(--color-amber-200); --accent-300: var(--color-amber-300); --accent-400: var(--color-amber-400); --accent-500: var(--color-amber-500); --accent-600: var(--color-amber-600); --accent-700: var(--color-amber-700); --accent-800: var(--color-amber-800); --accent-900: var(--color-amber-900); --accent-950: var(--color-amber-950); }
+[data-accent="yellow"] { --accent-50: var(--color-yellow-50); --accent-100: var(--color-yellow-100); --accent-200: var(--color-yellow-200); --accent-300: var(--color-yellow-300); --accent-400: var(--color-yellow-400); --accent-500: var(--color-yellow-500); --accent-600: var(--color-yellow-600); --accent-700: var(--color-yellow-700); --accent-800: var(--color-yellow-800); --accent-900: var(--color-yellow-900); --accent-950: var(--color-yellow-950); }
+[data-accent="green"] { --accent-50: var(--color-green-50); --accent-100: var(--color-green-100); --accent-200: var(--color-green-200); --accent-300: var(--color-green-300); --accent-400: var(--color-green-400); --accent-500: var(--color-green-500); --accent-600: var(--color-green-600); --accent-700: var(--color-green-700); --accent-800: var(--color-green-800); --accent-900: var(--color-green-900); --accent-950: var(--color-green-950); }
+[data-accent="emerald"] { --accent-50: var(--color-emerald-50); --accent-100: var(--color-emerald-100); --accent-200: var(--color-emerald-200); --accent-300: var(--color-emerald-300); --accent-400: var(--color-emerald-400); --accent-500: var(--color-emerald-500); --accent-600: var(--color-emerald-600); --accent-700: var(--color-emerald-700); --accent-800: var(--color-emerald-800); --accent-900: var(--color-emerald-900); --accent-950: var(--color-emerald-950); }
+[data-accent="teal"] { --accent-50: var(--color-teal-50); --accent-100: var(--color-teal-100); --accent-200: var(--color-teal-200); --accent-300: var(--color-teal-300); --accent-400: var(--color-teal-400); --accent-500: var(--color-teal-500); --accent-600: var(--color-teal-600); --accent-700: var(--color-teal-700); --accent-800: var(--color-teal-800); --accent-900: var(--color-teal-900); --accent-950: var(--color-teal-950); }
+[data-accent="cyan"] { --accent-50: var(--color-cyan-50); --accent-100: var(--color-cyan-100); --accent-200: var(--color-cyan-200); --accent-300: var(--color-cyan-300); --accent-400: var(--color-cyan-400); --accent-500: var(--color-cyan-500); --accent-600: var(--color-cyan-600); --accent-700: var(--color-cyan-700); --accent-800: var(--color-cyan-800); --accent-900: var(--color-cyan-900); --accent-950: var(--color-cyan-950); }
+[data-accent="sky"] { --accent-50: var(--color-sky-50); --accent-100: var(--color-sky-100); --accent-200: var(--color-sky-200); --accent-300: var(--color-sky-300); --accent-400: var(--color-sky-400); --accent-500: var(--color-sky-500); --accent-600: var(--color-sky-600); --accent-700: var(--color-sky-700); --accent-800: var(--color-sky-800); --accent-900: var(--color-sky-900); --accent-950: var(--color-sky-950); }
+[data-accent="blue"] { --accent-50: var(--color-blue-50); --accent-100: var(--color-blue-100); --accent-200: var(--color-blue-200); --accent-300: var(--color-blue-300); --accent-400: var(--color-blue-400); --accent-500: var(--color-blue-500); --accent-600: var(--color-blue-600); --accent-700: var(--color-blue-700); --accent-800: var(--color-blue-800); --accent-900: var(--color-blue-900); --accent-950: var(--color-blue-950); }
+[data-accent="indigo"] { --accent-50: var(--color-indigo-50); --accent-100: var(--color-indigo-100); --accent-200: var(--color-indigo-200); --accent-300: var(--color-indigo-300); --accent-400: var(--color-indigo-400); --accent-500: var(--color-indigo-500); --accent-600: var(--color-indigo-600); --accent-700: var(--color-indigo-700); --accent-800: var(--color-indigo-800); --accent-900: var(--color-indigo-900); --accent-950: var(--color-indigo-950); }
+[data-accent="violet"] { --accent-50: var(--color-violet-50); --accent-100: var(--color-violet-100); --accent-200: var(--color-violet-200); --accent-300: var(--color-violet-300); --accent-400: var(--color-violet-400); --accent-500: var(--color-violet-500); --accent-600: var(--color-violet-600); --accent-700: var(--color-violet-700); --accent-800: var(--color-violet-800); --accent-900: var(--color-violet-900); --accent-950: var(--color-violet-950); }
+[data-accent="purple"] { --accent-50: var(--color-purple-50); --accent-100: var(--color-purple-100); --accent-200: var(--color-purple-200); --accent-300: var(--color-purple-300); --accent-400: var(--color-purple-400); --accent-500: var(--color-purple-500); --accent-600: var(--color-purple-600); --accent-700: var(--color-purple-700); --accent-800: var(--color-purple-800); --accent-900: var(--color-purple-900); --accent-950: var(--color-purple-950); }
+[data-accent="fuchsia"] { --accent-50: var(--color-fuchsia-50); --accent-100: var(--color-fuchsia-100); --accent-200: var(--color-fuchsia-200); --accent-300: var(--color-fuchsia-300); --accent-400: var(--color-fuchsia-400); --accent-500: var(--color-fuchsia-500); --accent-600: var(--color-fuchsia-600); --accent-700: var(--color-fuchsia-700); --accent-800: var(--color-fuchsia-800); --accent-900: var(--color-fuchsia-900); --accent-950: var(--color-fuchsia-950); }
+[data-accent="pink"] { --accent-50: var(--color-pink-50); --accent-100: var(--color-pink-100); --accent-200: var(--color-pink-200); --accent-300: var(--color-pink-300); --accent-400: var(--color-pink-400); --accent-500: var(--color-pink-500); --accent-600: var(--color-pink-600); --accent-700: var(--color-pink-700); --accent-800: var(--color-pink-800); --accent-900: var(--color-pink-900); --accent-950: var(--color-pink-950); }
+[data-accent="rose"] { --accent-50: var(--color-rose-50); --accent-100: var(--color-rose-100); --accent-200: var(--color-rose-200); --accent-300: var(--color-rose-300); --accent-400: var(--color-rose-400); --accent-500: var(--color-rose-500); --accent-600: var(--color-rose-600); --accent-700: var(--color-rose-700); --accent-800: var(--color-rose-800); --accent-900: var(--color-rose-900); --accent-950: var(--color-rose-950); }
+
+/* 4. ui-sdk mapping (unlayered, so it beats web.css's :where(:root) defaults in @layer web). */
 :root {
-    /* Brand typefaces. Themes swap these; utilities: font-sans, font-heading, font-mono, font-data. */
-    --brand-font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
-    --brand-font-heading: var(--brand-font-sans);
-    --brand-font-mono: "Geist Mono Variable", ui-monospace, monospace;
-    --brand-font-data: var(--brand-font-sans);
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    /* Strongest contrast first: series 1 carries the lead value. */
-    --chart-1: oklch(0.269 0 0);
-    --chart-2: oklch(0.371 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.556 0 0);
-    --chart-5: oklch(0.708 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+  --ui-background: var(--color-surface-1);
+  --ui-foreground: var(--color-fg);
+  --ui-muted: var(--color-fill);
+  --ui-muted-foreground: var(--color-fg-muted);
+  --ui-border: var(--color-line);
+  --ui-input: var(--color-line-strong);
+  --ui-primary: var(--color-primary);
+  --ui-primary-foreground: var(--color-primary-fg);
+  --ui-destructive: var(--color-danger);
+  --ui-overlay: light-dark(oklch(0 0 0 / 0.24), oklch(0 0 0 / 0.6));
+  --ui-shadow: var(--shadow-strong);
+  --ui-radius: var(--radius-control);
+  --ui-font-sans: var(--font-sans);
+  --ui-font-mono: var(--font-mono);
+}
+/* Popups are made of surface-3, so their hover fill moves up one step too. */
+:is([data-slot="menu-content"], [data-slot="select-content"], [data-slot="combobox-content"], [data-slot="autocomplete-content"],
+    [data-slot="trigger-menu-content"], [data-slot="popover-content"], [data-slot="hover-card-content"], [data-slot="navigation-menu-viewport"],
+    [data-slot="navigation-menu-content"], [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [data-slot="drawer-content"],
+    [data-slot="date-picker-content"], [data-slot="toast"]) {
+  --ui-background: var(--color-surface-3);
+  --ui-muted: var(--color-fill-strong);
+}
+/* 5. Component finish, after Mentha (values and reasons: docs/design-system.md, "Component finish").
+      Edges are shadow parts, not borders. Two recipes: --shadow-weak for things you press (buttons, chips,
+      overlays), --shadow-control for things that hold a value (fields, boxes, thumbs), whose edge ring is
+      --color-line-strong so the boundary keeps 3:1. Composed on every [data-accent] so the focus ring
+      follows the nearest accent. */
+:root, [data-accent] {
+  --shadow-focus: 0 0 0 1px var(--accent-solid), 0 0 0 3px var(--accent-soft);
+}
+:root {
+  --ui-font-size: 0.875rem;          /* Label / Body: 14 */
+  --ui-line-height: calc(20 / 14);
+  --edge: 0.5px;                     /* one device pixel at 2x */
+  --shadow-part-edge: 0 0 0 var(--edge) var(--color-line-strong);
+  --shadow-control: var(--shadow-part-layer-1), var(--shadow-part-edge), var(--shadow-part-inset);
+  --shadow-invalid: 0 0 0 1px var(--color-danger), 0 0 0 3px color-mix(in oklab, var(--color-danger) 24%, transparent);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* web.css draws these as masks with square caps at 2/24; round caps and joins, weight of the 14px label. */
+  --ui-icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+  --ui-icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 7 9.5 17 5 12.5'/%3E%3C/svg%3E");
+  --ui-icon-minus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E");
+  --ui-icon-plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 12h12M12 6v12'/%3E%3C/svg%3E");
+  --ui-icon-x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M17 7 7 17M7 7l10 10'/%3E%3C/svg%3E");
+}
+@media (resolution < 2dppx) { :root { --edge: 1px; } } /* half a pixel would blur to under 3:1 at 1x */
+
+@property --fade-top { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --fade-bottom { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@keyframes scroll-fade {
+  0% { --fade-top: 0px; --fade-bottom: 20px; }
+  12%, 88% { --fade-top: 20px; --fade-bottom: 20px; }
+  100% { --fade-top: 20px; --fade-bottom: 0px; }
 }
 
-.dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+@layer components {
+  /* Focus: a 1px accent ring and a 2px soft halo, for every part. The outline is transparent, not none:
+     forced colours drops box-shadow and paints the outline instead. Parts with an edge re-add it below. */
+  [data-slot]:focus-visible { outline: 2px solid transparent; outline-offset: 1px; box-shadow: var(--shadow-focus); }
+  :is(a, summary):focus-visible { outline: 2px solid var(--accent-solid); outline-offset: 2px; border-radius: var(--radius-2); }
+
+  /* An action row in a card sits closer to the edge than the content (see --spacing-card-edge). This sets the end side;
+     a row that is also the card's bottom adds data-edge="bottom". */
+  [data-slot="card-actions"] {
+    margin-inline-end: calc(var(--spacing-card-edge) - var(--spacing-card-pad));
+    &[data-edge~="bottom"] { margin-block-end: calc(var(--spacing-card-edge) - var(--spacing-card-pad)); }
+  }
+
+  /* Badge: a count beside a title or inside a button. One size everywhere: 20px, the small button's badge, 4px corner. */
+  [data-slot="badge"] {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 20px; height: 20px; padding: 0 5px; border-radius: calc(var(--radius-control) - 4px);
+    background: var(--color-fill-strong); color: var(--color-fg-muted);
+    font-size: 12px; line-height: 16px; font-weight: 500; font-variant-numeric: tabular-nums;
+  }
+
+  /* Buttons and everything web.css draws as one: 32px (28px small), 14/20 at 500, --shadow-weak.
+     Default is the secondary look; data-variant="solid" is the black primary, "destructive" the red text one. */
+  :is([data-slot="button"], [data-slot="toggle"], [data-slot="dialog-trigger"], [data-slot="dialog-close"],
+      [data-slot="alert-dialog-trigger"], [data-slot="alert-dialog-close"], [data-slot="drawer-trigger"], [data-slot="drawer-close"],
+      [data-slot="tooltip-trigger"], [data-slot="popover-trigger"], [data-slot="popover-close"], [data-slot="menu-trigger"],
+      [data-slot="toast-action"], [data-slot="file-input-trigger"]) {
+    --bg: var(--color-surface-2);
+    --bg-hover: color-mix(in oklab, var(--color-fg) 5%, var(--color-surface-2)); /* opaque: one step toward the ink */
+    --bg-active: color-mix(in oklab, var(--color-fg) 10%, var(--color-surface-2)); /* opaque */
+    --icon: var(--color-fg-muted);
+    gap: 6px;
+    padding: 6px 12px;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: var(--bg);
+    color: var(--color-fg);
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -0.001em;
+    box-shadow: var(--shadow-weak);
+    transition: background-color 120ms ease, filter 0s linear 0.3s;
+    & > svg, & > [data-slot$="-icon"] { color: var(--icon); }
+    /* Icon beside a label: 16px, the 14px label's cap-to-descender height, 6px apart; the start padding drops by 2px
+       so the icon, not its 24-grid margin, sits on the edge. */
+    & > svg { width: 16px; height: 16px; }
+    &:has(> svg:first-child):not(:has(> svg:only-child)) { padding-inline-start: 10px; }
+    &:is([data-size="small"], [data-slot="toast-action"]) { height: 28px; padding: 4px 10px; gap: 4px; }
+    &[data-size="small"]:has(> svg:first-child):not(:has(> svg:only-child)) { padding-inline-start: 8px; }
+    &[aria-label]:has(> svg:only-child, > [data-slot$="-icon"]:only-child) { padding: 0; }
+    &[data-size="small"][aria-label]:has(> svg:only-child, > [data-slot$="-icon"]:only-child) { width: 28px; }
+    &[data-variant="solid"] {
+      --bg: var(--color-primary);
+      --bg-hover: color-mix(in oklab, var(--color-primary) 88%, var(--color-primary-fg));
+      --bg-active: color-mix(in oklab, var(--color-primary) 78%, var(--color-primary-fg));
+      --icon: color-mix(in oklab, var(--color-primary-fg) 72%, var(--color-primary));
+      color: var(--color-primary-fg);
+      /* Branded: the accent as the one primary action. */
+      &[data-tone="accent"] {
+        --bg: var(--accent-solid);
+        --bg-hover: color-mix(in oklab, var(--accent-solid) 88%, var(--accent-on));
+        --bg-active: color-mix(in oklab, var(--accent-solid) 78%, var(--accent-on));
+        --icon: color-mix(in oklab, var(--accent-on) 72%, var(--accent-solid));
+        color: var(--accent-on);
+      }
+    }
+    /* Soft: the second action beside a solid one. A gray fill, no edge or lift. */
+    &[data-variant="soft"] {
+      --bg: color-mix(in oklab, var(--color-fill-strong) 64%, transparent);
+      --bg-hover: var(--color-fill-strong);
+      --bg-active: color-mix(in oklab, var(--color-fill-strong) 80%, var(--color-fg) 6%);
+      box-shadow: none;
+    }
+    /* Link: a word that acts, sitting in a sentence. No surface; a light underline at rest, darker on hover. */
+    &[data-variant="link"] {
+      --bg: transparent; --bg-hover: transparent; --bg-active: transparent; --icon: currentColor;
+      height: auto; padding: 0 2px; margin-inline: -2px; border-radius: var(--radius-chip); box-shadow: none;
+      text-decoration: underline 1px color-mix(in oklab, currentColor 24%, transparent); text-underline-offset: 4px;
+      transition: text-decoration-color 140ms ease;
+      @media (hover: hover) { &:hover { text-decoration-color: color-mix(in oklab, currentColor 56%, transparent); transition-duration: 220ms; } }
+    }
+    &[data-variant="destructive"] {
+      --bg-hover: color-mix(in oklab, var(--color-danger) 4%, var(--color-surface-2));
+      --bg-active: color-mix(in oklab, var(--color-danger) 6%, var(--color-surface-2)); /* more would take the dark text under 4.5:1 */
+      --icon: var(--color-danger);
+      color: var(--color-danger);
+    }
+    /* Touch latches :hover after a tap, so the hover fill exists only where a pointer can hover. */
+    @media (hover: none) { &:hover:not([data-disabled]) { background: var(--bg); } }
+    @media (hover: hover) { &:hover:not([data-disabled]) { background: var(--bg-hover); --icon: currentColor; } }
+    &:is(:active, [data-open]):not([data-disabled]) { background: var(--bg-active); }
+    /* Pressed reads without colour: a full 1px edge at 3:1 replaces the hairline. */
+    &[data-pressed] { background: var(--bg-hover); box-shadow: var(--shadow-part-layer-1), 0 0 0 1px var(--color-line-strong), var(--shadow-part-inset); }
+    &:focus-visible { box-shadow: var(--shadow-focus), var(--shadow-part-layer-1); }
+    /* A badge inside a button is nested: 4px from the button's edges, radius = button radius - 4, so the corners run parallel. */
+    &:has(> [data-slot="badge"]) { padding-inline-end: 4px; }
+    /* Tinted from the text colour, so the badge shows on every button state (rest, hover, open, pressed). */
+    & > [data-slot="badge"] { align-self: stretch; height: auto; min-width: 24px; margin-block: -2px; padding-inline: 6px; border-radius: calc(var(--radius-control) - 4px); background: color-mix(in oklab, currentColor 9%, transparent); }
+    &[data-size="small"] > [data-slot="badge"] { min-width: 20px; margin-block: 0; padding-inline: 5px; }
+    &[data-variant="solid"] > [data-slot="badge"] { background: color-mix(in oklab, var(--color-primary-fg) 20%, transparent); color: var(--color-primary-fg); }
+    &[data-variant="destructive"]:focus-visible { box-shadow: var(--shadow-invalid), var(--shadow-part-layer-1); }
+    @variant motion-safe {
+      transition: background-color 120ms ease, filter 0s linear 0.3s, transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+      &:active:not([data-disabled], [data-pending], [data-variant="link"]) { transform: scale(0.97); }
+    }
+  }
+  /* A scrolling list fades at an edge that has more behind it, and stops fading at the end you reach.
+     Scroll-driven, so a list that does not overflow never fades; without support it is a plain edge. */
+  .scroll-fade {
+    mask-image: linear-gradient(to bottom, transparent, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent);
+    @supports (animation-timeline: scroll()) {
+      animation: scroll-fade linear both;
+      animation-timeline: scroll(self);
+    }
+  }
+  /* On a grey well the soft fill steps up a shade, or it would vanish into the well. */
+  :where(.bg-well) :is([data-slot="button"], [data-slot="toggle"])[data-variant="soft"] {
+    --bg: var(--color-fill-strong);
+    --bg-hover: color-mix(in oklab, var(--color-fill-strong) 80%, var(--color-fg) 8%);
+    --bg-active: color-mix(in oklab, var(--color-fill-strong) 70%, var(--color-fg) 12%);
+  }
+  /* A submenu's trigger shares the slot name but is a menu item. */
+  [data-slot="menu-content"] [data-slot="menu-trigger"] {
+    --bg: transparent; --bg-hover: transparent; --bg-active: var(--color-fill-strong);
+    padding: 0 8px; border-radius: var(--radius-chip); box-shadow: none; font-weight: 400; transform: none;
+  }
+
+  /* Radii: every ui-sdk part on Mentha's scale. web.css derives them from --ui-radius (6px) with multipliers;
+     these pin the ones that would otherwise land off-scale (9px popups, 5px menu items). */
+  :is([data-slot="popover-content"], [data-slot="menu-content"], [data-slot="select-content"], [data-slot="combobox-content"],
+      [data-slot="autocomplete-content"], [data-slot="trigger-menu-content"], [data-slot="hover-card-content"], [data-slot="listbox"],
+      [data-slot="command"], [data-slot="navigation-menu-viewport"], [data-slot="navigation-menu-content"],
+      [data-slot="date-picker-content"], [data-slot="segmented-control"], [data-slot="toolbar"], [data-slot="menubar"]) {
+    border-radius: var(--radius-group);
+  }
+  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"], [data-slot="calendar"], [data-slot="toast"]) {
+    border-radius: var(--radius-card);
+  }
+  :is([data-slot="menu-item"], [data-slot="menu-checkbox-item"], [data-slot="menu-radio-item"], [data-slot="select-item"],
+      [data-slot="combobox-item"], [data-slot="autocomplete-item"], [data-slot="listbox-item"], [data-slot="command-item"],
+      [data-slot="trigger-menu-item"], [data-slot="navigation-menu-link"], [data-slot="toolbar"] [data-slot="toggle"],
+      [data-slot="toolbar-button"], [data-slot="toolbar-link"], [data-slot="toolbar-input"], [data-slot="token-input-token"],
+      [data-slot="calendar-day"], [data-slot="toast-close"],
+      [data-slot="password-input-toggle"], [data-slot="accordion-trigger"], [data-slot="collapsible-trigger"], kbd) {
+    border-radius: var(--radius-chip);
+  }
+  :is([data-slot="checkbox"], [data-slot="slider-track"], [data-slot="progress-track"], [data-slot="meter-track"]) {
+    border-radius: var(--radius-3);
+  }
+  /* web.css makes these fully round (--ui-radius * 999); Mentha squares them: track 3, thumb 2 inside it. */
+  :is([data-slot="switch"], [data-slot="slider-thumb"], [data-slot="color-picker-slider"], [data-slot="scroll-area-thumb"]) {
+    border-radius: var(--radius-3);
+  }
+  :is([data-slot="switch-thumb"], [data-slot="color-picker-area-thumb"], [data-slot="color-picker-slider-thumb"]) {
+    border-radius: var(--radius-2);
+  }
+
+  /* Segmented control: a well with a raised pill. The pill's edge is the 3:1 ring, so checked reads without colour. */
+  [data-slot="segmented-control"] { padding: 2px; border: 0; background: var(--color-well); box-shadow: inset 0 0 0 1px var(--color-line); }
+  :is([data-slot="segmented-control-item"], [data-slot="segmented-control-indicator"]) { border-radius: var(--radius-control); }
+  [data-slot="segmented-control-item"] {
+    padding-inline: 10px;
+    font-size: 14px;
+    line-height: 20px;
+    transition: color 120ms ease, background-color 120ms ease;
+    @media (hover: hover) { &:hover:not([data-checked], [data-disabled]) { background: var(--color-fill-strong); } }
+    &:focus-visible { box-shadow: var(--shadow-focus); }
+  }
+  [data-slot="segmented-control-indicator"] { border: 0; background: var(--color-raised); box-shadow: var(--shadow-control); }
+  @variant motion-safe {
+    /* ponytail: left and width, not transform: ui-sdk writes the pill's box as left/top/width/height. One 28px
+       element, so the layout cost is nil. Arrow keys move it at once. */
+    [data-slot="segmented-control"]:not(:has(:focus-visible)) > [data-slot="segmented-control-indicator"] {
+      transition: left 200ms var(--ease-out), top 200ms var(--ease-out), width 200ms var(--ease-out), height 200ms var(--ease-out);
+    }
+  }
+
+  /* Fields: one white box, edge from --shadow-control, focus and invalid swap the ring. */
+  :is([data-slot="input"], [data-slot="textarea"], [data-slot="combobox-input"], [data-slot="autocomplete-input"],
+      [data-slot="select-trigger"], [data-slot="password-input"], [data-slot="date-input"], [data-slot="time-input"],
+      [data-slot="date-picker-input"], [data-slot="number-input-group"], [data-slot="otp-input-slot"]) {
+    border: 0;
+    border-radius: var(--radius-control);
+    background: var(--color-surface-1);
+    color: var(--color-fg);
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: -0.001em;
+    box-shadow: var(--shadow-control);
+    transition: background-color 120ms ease;
+    &::placeholder { color: var(--color-fg-subtle); opacity: 1; }
+    @media (hover: hover) {
+      &:hover:not([data-disabled], :has(:disabled)) { background: color-mix(in oklab, var(--color-fg) 3%, var(--color-surface-1)); }
+    }
+    &:is(:focus-visible, [data-open], [data-active]), &:has(:focus-visible) {
+      outline: 2px solid transparent;
+      outline-offset: 1px;
+      box-shadow: var(--shadow-focus), var(--shadow-part-layer-1), var(--shadow-part-inset);
+    }
+    &:is([data-invalid], [aria-invalid="true"]), &:has([aria-invalid="true"]) {
+      box-shadow: var(--shadow-invalid), var(--shadow-part-layer-1), var(--shadow-part-inset);
+    }
+    /* Disabled sinks into the well instead of fading: the value stays readable. */
+    &:is([data-disabled], :disabled), &:has(input:disabled) {
+      opacity: 1;
+      background: var(--color-well);
+      color: var(--color-fg-subtle);
+      box-shadow: 0 0 0 var(--edge) var(--color-line);
+    }
+  }
+  [data-slot="textarea"] { padding-block: 6px; }
+  [data-slot="select-trigger"] {
+    gap: 6px;
+    &::after { color: var(--color-fg-subtle); }
+    &:is(:hover, [data-open])::after { color: var(--color-fg); }
+    @variant motion-safe { &::after { transition: rotate 150ms var(--ease-out); } }
+  }
+  [data-slot="select-value"][data-placeholder] { color: var(--color-fg-subtle); }
+  [data-slot="password-input-control"]::placeholder { color: var(--color-fg-subtle); opacity: 1; }
+  /* Number input: one field, the steppers inside it behind a hairline. */
+  [data-slot="number-input-control"] {
+    width: 4rem; margin: 0; border: 0; border-radius: 0; background: transparent; outline: 0;
+    font-size: 14px; font-variant-numeric: tabular-nums;
+    &:focus-visible { box-shadow: none; }
+  }
+  :is([data-slot="number-input-decrement"], [data-slot="number-input-increment"]) {
+    border: 0; border-radius: 0; background: transparent; color: var(--color-fg-muted);
+    transition: background-color 120ms ease, color 120ms ease;
+    @media (hover: hover) { &:hover:not([data-disabled]) { background: var(--color-fill); color: var(--color-fg); } }
+    @media (hover: none) { &:hover:not([data-disabled]) { background: transparent; } }
+    &:active:not([data-disabled]) { background: var(--color-fill-strong); }
+  }
+  [data-slot="number-input-decrement"] { border-inline-end: var(--edge) solid var(--color-line); border-start-start-radius: inherit; border-end-start-radius: inherit; }
+  [data-slot="number-input-increment"] { border-inline-start: var(--edge) solid var(--color-line); border-start-end-radius: inherit; border-end-end-radius: inherit; }
+  /* One-time code: separate cells, the digit in the value face. */
+  [data-slot="otp-input-group"] { gap: 4px; }
+  [data-slot="otp-input-slot"] {
+    font-variant-numeric: tabular-nums;
+    & + & { margin-inline-start: 0; }
+    &:is(:first-child, :last-child) { border-radius: var(--radius-control); }
+  }
+  [data-slot="otp-input"]:has([aria-invalid="true"]) [data-slot="otp-input-slot"] { box-shadow: var(--shadow-invalid), var(--shadow-part-layer-1); }
+  :is([data-slot="password-input-toggle"], [data-slot="toast-close"], [data-slot="date-picker-trigger"], [data-slot="date-picker-clear"]) {
+    color: var(--color-fg-subtle);
+    transition: background-color 120ms ease, color 120ms ease;
+    @media (hover: none) { &:hover:not([data-disabled]) { background: transparent; } }
+  }
+
+  /* Field text, on the shared scale: Label 14/20 at 500, hint and error Caption 12/16. */
+  :is([data-slot="field-label"], [data-slot="select-label"], [data-slot="combobox-label"], [data-slot="progress-label"],
+      [data-slot="meter-label"], [data-slot="field-legend"]) {
+    color: var(--color-fg); font-size: 14px; line-height: 20px; font-weight: 500;
+    &[data-disabled] { color: var(--color-fg-subtle); }
+  }
+  [data-slot="field-description"] { color: var(--color-fg-subtle); font-size: 12px; line-height: 16px; }
+  [data-slot="field-error"] { color: var(--color-danger); font-size: 12px; line-height: 16px; }
+  :is([data-slot="slider-value"], [data-slot="progress-value"], [data-slot="meter-value"]) {
+    color: var(--color-fg); font-size: 14px; line-height: 20px; font-variant-numeric: tabular-nums;
+  }
+  :is(label, [data-slot="label"]):has(> :is([data-slot="checkbox"], [data-slot="radio"], [data-slot="switch"])) {
+    gap: 8px; color: var(--color-fg); font-size: 14px; line-height: 20px;
+    &:has(> [data-disabled]) { color: var(--color-fg-subtle); cursor: not-allowed; }
+    & > :is([data-slot="checkbox"], [data-slot="radio"]) { margin-block-start: 2px; }
+    & > [data-slot="switch"] { margin-block-start: 1px; }
+  }
+
+  /* Checkbox and radio: white box with the control edge; checked fills with the action colour. */
+  :is([data-slot="checkbox"], [data-slot="radio"]) {
+    border: 0;
+    background: var(--color-surface-1);
+    box-shadow: var(--shadow-control);
+    transition: background-color 120ms ease;
+    @media (hover: hover) { &:hover:not([data-disabled]) { background: var(--color-fill); } }
+    &:is([data-checked], [data-indeterminate]) {
+      background: var(--color-primary);
+      box-shadow: var(--shadow-part-layer-1), 0 0 0 var(--edge) var(--color-primary);
+    }
+    @media (hover: hover) {
+      &:is([data-checked], [data-indeterminate]):hover:not([data-disabled]) { background: color-mix(in oklab, var(--color-primary) 82%, var(--color-primary-fg)); }
+    }
+    &[data-invalid] { box-shadow: var(--shadow-invalid), var(--shadow-part-layer-1); }
+    &:focus-visible { box-shadow: var(--shadow-focus), var(--shadow-part-layer-1); }
+  }
+  [data-slot="radio-indicator"] { width: 6px; height: 6px; background: var(--color-primary-fg); }
+  @variant motion-safe {
+    /* The tick wipes in along its stroke; a keyboard toggle (focus-visible) shows it at once. */
+    [data-slot="checkbox"]:not(:focus-visible) > [data-slot="checkbox-indicator"] {
+      transition: clip-path 140ms var(--ease-out);
+      &[data-starting-style] { clip-path: inset(0 100% 0 0); }
+    }
+  }
+
+  /* Switch, after Mentha: 28x18 track, 12x16 thumb that slides 14px. Off is a well with the control edge. */
+  [data-slot="switch"] {
+    width: 28px;
+    height: 18px;
+    padding: 1px;
+    border: 0;
+    background: var(--color-well);
+    box-shadow: var(--shadow-part-edge);
+    transition: background-color 150ms ease-out;
+    @media (hover: hover) { &:hover:not([data-disabled], [data-checked]) { background: var(--color-fill-strong); } }
+    &[data-checked] { background: var(--color-primary); box-shadow: 0 0 0 var(--edge) var(--color-primary); }
+    @media (hover: hover) {
+      &[data-checked]:hover:not([data-disabled]) { background: color-mix(in oklab, var(--color-primary) 82%, var(--color-primary-fg)); }
+    }
+    &:focus-visible { box-shadow: var(--shadow-focus); }
+  }
+  [data-slot="switch-thumb"] {
+    width: 12px;
+    height: 16px;
+    background: var(--color-surface-2);
+    box-shadow: var(--shadow-control);
+    &[data-checked] { margin-inline-start: 0; translate: 14px; background: var(--color-primary-fg); box-shadow: var(--shadow-part-layer-1); }
+    &[data-checked]:dir(rtl) { translate: -14px; }
+  }
+  @variant motion-safe {
+    [data-slot="switch"]:not(:focus-visible) > [data-slot="switch-thumb"] { transition: translate 150ms ease-out; }
+  }
+
+  /* Slider, progress, meter: a 6px groove with the control edge, and a raised thumb. A part that holds
+     children of its own (a widget drawing its own groove or thumb face) keeps its own look. */
+  :is([data-slot="slider-track"], [data-slot="progress-track"], [data-slot="meter-track"]):not(:has(> :not([data-slot$="-indicator"], [data-slot="slider-thumb"]))) {
+    height: 6px;
+    background: var(--color-well);
+    box-shadow: inset 0 0 0 var(--edge) var(--color-line-strong);
+    &[data-orientation="vertical"] { width: 6px; height: 100%; }
+  }
+  [data-slot="slider-thumb"]:not(:has(> :not([data-slot="slider-thumb-input"]))) {
+    border: 0;
+    background: var(--color-surface-2);
+    box-shadow: var(--shadow-part-layer-2), var(--shadow-control);
+    transition: background-color 120ms ease;
+    @media (hover: hover) { [data-slot="slider-control"]:hover &:not([data-disabled]) { background: color-mix(in oklab, var(--color-fg) 6%, var(--color-surface-2)); } }
+    &[data-dragging] { background: color-mix(in oklab, var(--color-fg) 10%, var(--color-surface-2)); }
+    &:has(:focus-visible) { outline: 2px solid transparent; outline-offset: 1px; box-shadow: var(--shadow-focus), var(--shadow-part-layer-1); }
+    &[data-disabled] { opacity: 1; background: color-mix(in oklab, var(--color-fg) 4%, var(--color-surface-1)); box-shadow: 0 0 0 var(--edge) var(--color-line-strong); }
+  }
+  [data-slot="slider"][data-disabled] [data-slot="slider-indicator"] { background: var(--color-fg-subtle); }
+  [data-slot="slider"][data-disabled] [data-slot="slider-value"] { color: var(--color-fg-subtle); }
+
+  /* Popups: no border (the shadow ring is the edge), 4px inset, 32px rows with 4px corners. */
+  :is([data-slot="menu-content"], [data-slot="select-content"], [data-slot="combobox-content"], [data-slot="autocomplete-content"],
+      [data-slot="trigger-menu-content"], [data-slot="popover-content"], [data-slot="hover-card-content"], [data-slot="tooltip-content"]) {
+    border: 0;
+    box-shadow: var(--shadow-strong);
+    transform-origin: var(--transform-origin);
+    transition: opacity 150ms ease-out;
+    &:is([data-starting-style], [data-ending-style]) { opacity: 0; }
+    &[data-ending-style] { transition-duration: 100ms; }
+    &:focus-visible { box-shadow: var(--shadow-strong); }
+    @variant motion-safe {
+      transition: opacity 150ms ease-out, scale 150ms var(--ease-out);
+      &:is([data-starting-style], [data-ending-style]) { scale: 0.97; }
+    }
+    /* Keyboard focus inside means it was opened from the keyboard, the high-frequency path: no motion. */
+    &:is(:focus-visible, :has(:focus-visible)) { transition: none; }
+  }
+  :is([data-slot="menu-item"], [data-slot="menu-checkbox-item"], [data-slot="menu-radio-item"], [data-slot="select-item"],
+      [data-slot="combobox-item"], [data-slot="autocomplete-item"], [data-slot="listbox-item"], [data-slot="command-item"],
+      [data-slot="trigger-menu-item"], [data-slot="menu-trigger"]:where([data-slot="menu-content"] *)) {
+    min-height: 32px;
+    padding-inline: 8px;
+    color: var(--color-fg);
+    font-size: 14px;
+    line-height: 20px;
+    & > svg, & > [data-slot$="-icon"] { color: var(--color-fg-muted); }
+    &[data-highlighted] > :is(svg, [data-slot$="-icon"]) { color: currentColor; }
+    &[data-destructive] { color: var(--color-danger); & > :is(svg, [data-slot$="-icon"]) { color: currentColor; } }
+    &[data-destructive][data-highlighted] { background: color-mix(in oklab, var(--color-danger) 6%, var(--color-surface-3)); }
+    /* The fill is quiet on purpose; with the keyboard the row also takes a 3:1 ring, inset so the popup cannot clip it. */
+    &:focus-visible, [data-modality="keyboard"] &[data-highlighted] { box-shadow: inset 0 0 0 1px var(--accent-solid); }
+  }
+  :is([data-slot="menu-checkbox-item"], [data-slot="menu-radio-item"]) { padding-inline-start: 32px; }
+  :is([data-slot="menu-group-label"], [data-slot="command-group-label"], [data-slot="select-group-label"], [data-slot="combobox-group-label"]) {
+    padding: 6px 8px 4px; color: var(--color-fg-subtle); font-size: 12px; line-height: 16px;
+  }
+  :is([data-slot="command-shortcut"], [data-slot="menu-shortcut"], [data-slot="tooltip-shortcut"]) {
+    color: var(--color-fg-subtle); font-size: 12px; line-height: 16px;
+  }
+  :is([data-slot="combobox-empty"], [data-slot="autocomplete-empty"], [data-slot="command-empty"], [data-slot="trigger-menu-empty"]):not(:empty) {
+    color: var(--color-fg-subtle); font-size: 12px; line-height: 16px;
+  }
+  /* A keycap: fill, hairline ring and one hard pixel underneath. */
+  kbd {
+    display: inline-block;
+    min-width: 20px;
+    padding: 0 5px;
+    border: 0;
+    background: var(--color-fill);
+    color: var(--color-fg-muted);
+    font-family: var(--font-sans);
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: var(--shadow-part-border), 0 1px 0 0 light-dark(oklch(0 0 0 / 0.16), oklch(0 0 0 / 0.5));
+  }
+
+  [data-slot="popover-content"], [data-slot="hover-card-content"] { gap: 8px; padding: 12px; }
+  [data-slot="popover-title"] { font-size: 14px; line-height: 20px; font-weight: 500; }
+  [data-slot="popover-description"] { color: var(--color-fg-muted); font-size: 14px; line-height: 20px; }
+  /* Tooltip: a small raised chip, not web.css's inverted block. */
+  [data-slot="tooltip-content"] {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 8px;
+    border-radius: var(--radius-control);
+    background: var(--color-surface-3);
+    color: var(--color-fg);
+    font-size: 12px; line-height: 16px; font-weight: 500;
+    transition-duration: 120ms;
+  }
+
+  /* Dialog: the card radius, no border, a quieter title than web.css (Label, not a heading size). */
+  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"], [data-slot="drawer-content"]) {
+    --ui-background: var(--color-sheet);
+    background: var(--color-sheet);
+    /* Fields and quiet buttons step up to surface-2 (white in light, olive-800 in dark) so they read as raised. */
+    & :is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"], [data-slot="password-input"], [data-slot="number-input-group"], [data-slot="combobox-input"]) { background: var(--color-surface-2); }
+    /* The last row of actions sits closer to the edge than the content: concentric with the corner (16 - 8). */
+    & > :last-child:has(> :is([data-slot="button"], [data-slot$="-close"])) { margin: 0 calc(var(--spacing-card-edge) - 16px) calc(var(--spacing-card-edge) - 16px); }
+  }
+  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
+    gap: 16px;
+    padding: 16px;
+    border: 0;
+    box-shadow: var(--shadow-strong);
+    transition: opacity 200ms ease-out;
+    &:is([data-starting-style], [data-ending-style]) { opacity: 0; }
+    &[data-ending-style] { transition-duration: 150ms; }
+    &:focus-visible { box-shadow: var(--shadow-strong); }
+    @variant motion-safe {
+      transition: opacity 200ms ease-out, scale 200ms var(--ease-out);
+      &:is([data-starting-style], [data-ending-style]) { scale: 0.96; }
+    }
+  }
+  :is([data-slot="dialog-backdrop"], [data-slot="alert-dialog-backdrop"], [data-slot="drawer-backdrop"]) {
+    transition: opacity 200ms ease-out;
+    &:is([data-starting-style], [data-ending-style]) { opacity: 0; }
+    &[data-ending-style] { transition-duration: 150ms; }
+  }
+  :is([data-slot="dialog-title"], [data-slot="alert-dialog-title"], [data-slot="drawer-title"], [data-slot="toast-title"]) {
+    font-size: 14px; line-height: 20px; font-weight: 500;
+  }
+  :is([data-slot="dialog-description"], [data-slot="alert-dialog-description"], [data-slot="drawer-description"], [data-slot="toast-description"]) {
+    color: var(--color-fg-muted); font-size: 14px; line-height: 20px;
+  }
+
+  [data-slot="toast"] {
+    gap: 2px 12px;
+    padding: 12px 12px 12px 16px;
+    border: 0;
+    box-shadow: var(--shadow-strong);
+    transition: opacity 200ms ease-out;
+    &:is([data-starting-style], [data-ending-style]) { opacity: 0; }
+    &[data-ending-style] { transition-duration: 150ms; }
+    &[data-type="error"] { box-shadow: var(--shadow-strong), 0 0 0 1px var(--color-danger); }
+    &:focus-visible { box-shadow: var(--shadow-focus), var(--shadow-strong); }
+    @variant motion-safe {
+      transition: opacity 200ms ease-out, translate 250ms var(--ease-out);
+      &[data-starting-style] { translate: 0 8px; }
+    }
+  }
+
+  /* Tabs: 36px, text steps subtle -> muted -> fg, the selected tab keeps web.css's 2px ink line. */
+  [data-slot="tabs-list"] { gap: 16px; border-color: var(--color-line); }
+  [data-slot="tabs-tab"] {
+    position: relative;
+    height: 36px;
+    padding-inline: 2px;
+    color: var(--color-fg-subtle);
+    font-size: 14px;
+    line-height: 20px;
+    border-radius: 0;
+    transition: color 120ms ease;
+    /* Square, so the ink line has square ends. The focus ring is its own 4px-radius box inside the tab, clear of the line. */
+    &:focus-visible { box-shadow: none; }
+    &:focus-visible::before {
+      content: ""; position: absolute; inset: 6px -4px; border-radius: var(--radius-chip);
+      box-shadow: var(--shadow-focus); pointer-events: none;
+    }
+    @media (hover: hover) { &:hover:not([data-disabled], [data-selected]) { color: var(--color-fg-muted); } }
+    &[data-selected] { color: var(--color-fg); }
+  }
+  [data-slot="tabs-panel"] { border-radius: var(--radius-chip); color: var(--color-fg-muted); font-size: 14px; line-height: 20px; }
+
+  /* Accordion and collapsible: the chevron turns on the same curve the panel opens on. */
+  :is([data-slot="accordion"], [data-slot="accordion-item"]) { border-color: var(--color-line); }
+  :is([data-slot="accordion-trigger"], [data-slot="collapsible-trigger"]) {
+    font-size: 14px;
+    line-height: 20px;
+    &::after { color: var(--color-fg-subtle); }
+    @media (hover: hover) { &:hover:not([data-disabled])::after { color: var(--color-fg); } }
+    @variant motion-safe { &::after { transition: rotate 200ms cubic-bezier(0.165, 0.84, 0.44, 1), color 120ms ease; } }
+  }
+  :is([data-slot="accordion-panel"], [data-slot="collapsible-panel"]) { font-size: 14px; line-height: 20px; }
+  @variant motion-safe {
+    [data-slot="accordion-item"]:not(:has([data-slot="accordion-trigger"]:focus-visible)) > [data-slot="accordion-panel"] {
+      height: var(--accordion-panel-height);
+      overflow: hidden;
+      transition: height 200ms cubic-bezier(0.165, 0.84, 0.44, 1);
+      &:is([data-starting-style], [data-ending-style]) { height: 0; }
+    }
+  }
+
+  [data-slot="scroll-area"] { border: 0; box-shadow: inset 0 0 0 1px var(--color-line); }
+  [data-slot="scroll-area-viewport"]:focus-visible { outline-offset: -2px; box-shadow: inset 0 0 0 1px var(--accent-solid), inset 0 0 0 3px var(--accent-soft); }
+  [data-slot="scroll-area-thumb"] {
+    background: var(--color-line-strong);
+    transition: background-color 120ms ease;
+    &:is(:hover, [data-dragging]) { background: var(--color-fg-muted); }
+  }
+
+  /* A widget that redraws a part from scratch opts out of the part's base finish (the dictation words in
+     Focus pull are select triggers drawn as dashed underlines). */
+  [data-slot="focus-pull"] [data-slot="transcript"] [data-slot="select-trigger"] { box-shadow: none; }
+
+  /* Forced colours removes box-shadow, which draws every edge here: give those parts a real outline. */
+  @media (forced-colors: active) {
+    :is([data-slot="button"], [data-slot="toggle"], [data-slot="dialog-trigger"], [data-slot="dialog-close"], [data-slot="alert-dialog-trigger"],
+        [data-slot="alert-dialog-close"], [data-slot="tooltip-trigger"], [data-slot="popover-trigger"], [data-slot="popover-close"],
+        [data-slot="menu-trigger"], [data-slot="toast-action"], [data-slot="segmented-control"], [data-slot="input"], [data-slot="textarea"],
+        [data-slot="combobox-input"], [data-slot="autocomplete-input"], [data-slot="select-trigger"], [data-slot="password-input"],
+        [data-slot="number-input-group"], [data-slot="otp-input-slot"], [data-slot="checkbox"], [data-slot="radio"], [data-slot="switch"],
+        [data-slot="slider-thumb"], [data-slot="slider-track"], [data-slot="progress-track"], [data-slot="meter-track"],
+        [data-slot="menu-content"], [data-slot="select-content"], [data-slot="combobox-content"], [data-slot="popover-content"],
+        [data-slot="tooltip-content"], [data-slot="dialog-content"], [data-slot="alert-dialog-content"], [data-slot="toast"],
+        [data-slot="scroll-area"], kbd, .shadow-weak, .shadow-base, .shadow-strong) {
+      outline: 1px solid ButtonBorder;
+      outline-offset: -1px;
+    }
+    [data-slot]:focus-visible, :is([data-slot="input"], [data-slot="password-input"], [data-slot="number-input-group"], [data-slot="slider-thumb"]):has(:focus-visible),
+    [data-slot="otp-input-slot"][data-active] { outline: 2px solid Highlight; outline-offset: 1px; }
+    :is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"], [data-slot="checkbox"], [data-slot="radio"])[data-invalid] { outline-color: Mark; outline-width: 2px; }
+    [data-slot="segmented-control-indicator"] { outline: 2px solid Highlight; outline-offset: -2px; }
+    [data-slot="toggle"][data-pressed] { outline: 2px solid Highlight; }
+    [data-highlighted] { outline: 2px solid Highlight; outline-offset: -2px; }
+    /* Fills are dropped too, and they carry these states: repaint them in system colours. */
+    :is([data-slot="switch-thumb"], [data-slot="slider-indicator"], [data-slot="progress-indicator"], [data-slot="meter-indicator"], [data-slot="radio-indicator"],
+        [data-slot="switch"][data-checked], :is([data-slot="checkbox"], [data-slot="radio"]):is([data-checked], [data-indeterminate])) { forced-color-adjust: none; }
+    [data-slot="switch-thumb"] { background: ButtonText; }
+    :is([data-slot="switch"], [data-slot="checkbox"], [data-slot="radio"]):is([data-checked], [data-indeterminate]) { background: Highlight; color: HighlightText; }
+    :is([data-slot="switch-thumb"][data-checked], [data-slot="radio-indicator"]) { background: HighlightText; }
+    :is([data-slot="slider-indicator"], [data-slot="progress-indicator"], [data-slot="meter-indicator"]) { background: Highlight; }
+  }
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-    }
-  body {
-    @apply bg-background text-foreground;
-    }
   html {
-    @apply font-sans;
-    }
+    background: var(--color-canvas); color: var(--color-fg); font-family: var(--font-sans);
+    /* Smooth type everywhere, including text drawn at the chart's zoom. */
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility;
+  }
+  /* Scrollbars: thin, no track, a thumb in the control-edge grey that firms up on hover. */
+  * { scrollbar-width: thin; scrollbar-color: var(--color-line-strong) transparent; }
+  *:hover { scrollbar-color: var(--color-fg-subtle) transparent; }
+  @supports not (scrollbar-color: auto) {
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 8px; background: var(--color-line-strong) padding-box; }
+    ::-webkit-scrollbar-thumb:hover { background-color: var(--color-fg-subtle); }
+  }
+  body { margin: 0; min-height: 100dvh; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 }
+
+/* Layout grid (G, or the switch top right): 4px lines (the spacing unit), 16px majors, accent centre axes.
+   The origin is the widget, not the viewport: Measure.tsx writes the top-left and centre of [data-grid-origin]
+   (or of main's content box on a page without a widget), snapped to whole device pixels, to --grid-x/y and --grid-cx/cy (before first paint, then on resize and scroll).
+   So the widget's edges are on majors at any viewport size. Without a widget the grid falls back to the page centre.
+   Both modes show rulers numbered from that origin. "boxes" also lifts the lines above the page, outlines
+   every element and turns on the per-element measurements. */
+
+/* The stage: one widget, centred. The frame is rounded down to an even size, so a widget with even sides
+   (they are multiples of 16) lands on whole pixels; a plain centred box sits on a half pixel in an odd viewport. */
+[data-stage-frame] {
+  display: grid;
+  place-items: center;
+  width: round(down, 100%, 2px);
+  min-height: round(down, 100dvh, 2px);
+}
+
+:root {
+  --grid-minor: light-dark(oklch(0 0 0 / 0.045), oklch(1 0 0 / 0.04));
+  --grid-major: light-dark(oklch(0 0 0 / 0.09), oklch(1 0 0 / 0.08));
+  --grid-half: 0.5px; /* lines straddle their coordinate: one device pixel either side at 2x */
+}
+@media (resolution < 2dppx) { :root { --grid-half: 0px; } } /* at 1x half a pixel would blur: the line is the first pixel */
+
+/* Motion. Model: the sheet is unmasked outward from the centre crosshair (clip-path circle) while it fades in,
+   so the axes show first and the lines seem to run out to the edges. Chosen over per-layer staggered opacity
+   or background-size "drawing", which both repaint six full-viewport gradients every frame; here the
+   gradients are painted once and only opacity and clip-path change. Off is a plain, shorter fade (the clip
+   snaps shut after it). Transitions, so rapid G presses retarget. The first style an element gets never
+   transitions, so a reload with the grid on shows it at once. */
+@property --grid-box { syntax: "<color>"; inherits: true; initial-value: transparent; }
+:root {
+  /* ponytail: an inherited property, so the boxes fade restyles the whole page for ~12 frames; fine for a
+     debug overlay, move it to a class on main if pages get heavy. */
+  transition: --grid-box 120ms ease-out;
+}
+:root[data-grid="boxes"] {
+  --grid-box: color-mix(in oklab, var(--accent-solid) 70%, transparent);
+  transition: --grid-box 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+body::before {
+  --x: calc(var(--grid-x, round(down, 50vw, 1px)) - var(--grid-half));
+  --y: calc(var(--grid-y, round(down, 50dvh, 1px)) - var(--grid-half));
+  --cx: calc(var(--grid-cx, round(down, 50vw, 1px)) - var(--grid-half));
+  --cy: calc(var(--grid-cy, round(down, 50dvh, 1px)) - var(--grid-half));
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* ponytail: fixed sheet, so the origin (and these tiles) is re-set on scroll while the grid is on;
+     make it an absolute sheet in document space if scrolling with the grid on ever janks. */
+  background:
+    linear-gradient(var(--accent-solid), var(--accent-solid)) var(--cx) 0 / 1px 100% no-repeat,
+    linear-gradient(var(--accent-solid), var(--accent-solid)) 0 var(--cy) / 100% 1px no-repeat,
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px) var(--x) 0 / var(--grid-step-major, 16px) 100%,
+    linear-gradient(var(--grid-major) 1px, transparent 1px) 0 var(--y) / 100% var(--grid-step-major, 16px),
+    linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px) var(--x) 0 / var(--grid-step, 4px) 100%,
+    linear-gradient(var(--grid-minor) 1px, transparent 1px) 0 var(--y) / 100% var(--grid-step, 4px);
+  opacity: 0;
+  clip-path: circle(0% at 50% 50%);
+  transition: opacity 140ms ease-out, clip-path 0s linear 140ms;
+}
+:root[data-grid] body::before {
+  opacity: 1;
+  clip-path: circle(71% at 50% 50%); /* 70.7% reaches the corners */
+  transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1), clip-path 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* Boxes: the lines cross the widget, so its inner edges can be read against them. */
+:root[data-grid="boxes"] body::before { z-index: 30; }
+/* Always present so the colour can ease both ways; transparent until "boxes". Focus rings keep their own outline. */
+main *:not(:focus-visible) {
+  outline: 0.5px solid var(--grid-box);
+  outline-offset: -0.5px;
+}
+@media (prefers-reduced-motion: reduce) {
+  body::before, :root[data-grid] body::before { clip-path: none; transition: opacity 140ms ease-out; }
+}
+:root[data-motion="reduce"] body::before { clip-path: none; transition: opacity 140ms ease-out; }
+/* A transparent outline is painted in forced colours: outside Boxes, hand the outline back to the layers above. */
+@media (forced-colors: active) {
+  :root:not([data-grid="boxes"]) main *:not(:focus-visible) { outline: revert-layer; outline-offset: revert-layer; }
+}
+
+/* Stage chrome: the four bars ([data-stage-chrome], and [data-stage-controls] top right) and their popups. Quieter
+   than the chart, no motion, and gone with H or ?clean (data-chrome="off"). Every control is 32px (40 on touch, below),
+   8px apart; an icon button is 32 by 32 with a 16px icon. */
+:is([data-stage-chrome], [data-stage-controls]) * { transition: none; animation: none; }
+:root[data-chrome="off"] :is([data-stage-chrome], [data-stage-controls]),
+:root[data-chrome="off"] body::before { display: none; }
+:root[data-chrome="off"] { --grid-box: transparent; }
+:is([data-stage-chrome], [data-stage-controls]) {
+  --control: 32px;
+  [data-slot="button"][aria-label]:has(> svg:only-child) { width: var(--control); }
+  /* Replay drops its word on a phone, and is an icon button there. */
+  @media (width < 40rem) { [data-slot="button"]:has(> .max-sm\:sr-only) { width: var(--control); padding: 0; } }
+  /* A trailing icon sits 10px in, like a leading one (the button rule trims only the start). */
+  [data-slot="button"]:has(> svg:last-child):not(:has(> svg:only-child)) { padding-inline-end: 10px; }
+  /* A link drawn as a button keeps the button's corner when focused. */
+  a[data-slot="button"]:focus-visible { border-radius: var(--radius-control); }
+  /* The colour select is drawn as the buttons are, with the same chevron: 10px in, a 16px icon slot either end. */
+  [data-slot="select-trigger"] {
+    min-width: 0; padding-inline: 10px; gap: 6px;
+    background: var(--color-surface-2); font-weight: 500; box-shadow: var(--shadow-weak);
+    & > svg { width: 16px; height: 16px; color: var(--color-fg-muted); }
+    @media (hover: hover) { &:hover { background: color-mix(in oklab, var(--color-fg) 5%, var(--color-surface-2)); & > svg { color: currentColor; } } }
+    &[data-open] { background: color-mix(in oklab, var(--color-fg) 10%, var(--color-surface-2)); box-shadow: var(--shadow-weak); }
+    &:focus-visible { box-shadow: var(--shadow-focus), var(--shadow-part-layer-1); }
+  }
+  /* The colour list is a set width, as the chart menu's columns are, so no name sets it a fraction of a pixel wide. */
+  [data-slot="select-content"] { width: max(10rem, var(--anchor-width)); }
+  /* A swatch is a 12px dot in a 16px icon slot, in line with the icons beside it and above it in the list. */
+  :is([data-slot="select-value-icon"], [data-slot="select-item-icon"]) { display: grid; place-items: center; width: 16px; height: 16px; }
+  /* The list marks the current colour as the chart menu marks the current chart: a check in the first 32px. */
+  [data-slot="select-item"] { position: relative; padding-inline-start: 32px; }
+  [data-slot="select-item-indicator"] { position: absolute; inset-inline-start: 8px; margin: 0; }
+  :is([data-slot="menu-item"], [data-slot="menu-radio-item"], [data-slot="select-item"]) { white-space: nowrap; }
+}
+/* Dial rows, after DialKit (joshpuckett/dialkit): every control in a tuning panel is one 32px row on a well,
+   label inside at the left, value or control at the right, 13/16 at 500. Rows stack 4px apart in an 8px-padded
+   panel. The row reads as one segmented control: label left, options right as 28px items 2px in (corner row - 2);
+   text sits 12px from either edge, like a slider's. In a bar the row has the control's 8px corner; in a popup
+   (--row-radius) the menu row's 6, so it runs parallel to the popup's 10 across the 4px inset. */
+.dial-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 32px; padding: 2px 2px 2px 12px;
+  border-radius: var(--row-radius, var(--radius-control)); background: var(--color-well);
+  color: var(--color-fg-muted); font-size: 13px; line-height: 16px; font-weight: 500; white-space: nowrap;
+  /* The whole row is a segmented control: the row is the track, the label sits where a first item would, and the
+     options are its items, sized like any segmented item: 28px, 10px padding, corner row - 2, the selected one
+     on the raised pill. So option text ends 12px from the edge (2 + 10), like the label starts. */
+  & [data-slot="segmented-control"] { flex: none; padding: 0; background: transparent; box-shadow: none; border-radius: calc(var(--row-radius, var(--radius-control)) - 2px); }
+  & :is([data-slot="segmented-control-item"], [data-slot="segmented-control-indicator"]) { border-radius: calc(var(--row-radius, var(--radius-control)) - 2px); }
+  & [data-slot="segmented-control-item"] { flex: none; height: 28px; min-width: 0; padding-inline: 10px; white-space: nowrap; font-size: 13px; line-height: 16px; }
+  & [data-slot="select-trigger"] {
+    height: 28px; padding-inline: 10px; gap: 6px; border-radius: calc(var(--row-radius, var(--radius-control)) - 2px);
+    background: transparent; box-shadow: none; font-size: 13px; color: var(--color-fg);
+    @media (hover: hover) { &:hover { background: var(--color-fill-strong); } }
+  }
+  & [data-slot="select-label"] { font: inherit; color: inherit; }
+}
+
+/* Dial slider: the row is the slider. The fill is the progress, the thumb a 2px line at its edge, the label and
+   value sit inside. The thumb travels 6px in from each end, so it never clips; the fill always ends at it
+   (and is empty at the minimum). The line shows on hover, focus and drag only.
+   Fill and thumb glide between values (100ms), so a stepped slider moves smoothly. Drag anywhere on the row;
+   the focus ring goes on the whole row. */
+[data-slot="slider"][data-variant="dial"] {
+  position: relative; display: block; height: 32px; min-width: 0;
+  border-radius: var(--row-radius, var(--radius-control)); background: var(--color-well); overflow: hidden;
+  color: var(--color-fg-muted); font-size: 13px; line-height: 16px; font-weight: 500;
+  & > [data-slot="slider-control"] { position: absolute; inset: 0; height: 100%; cursor: ew-resize; }
+  & [data-slot="slider-track"] { height: 100%; margin-inline: 6px; border-radius: 0; background: transparent; box-shadow: none; }
+  & [data-slot="slider-indicator"] {
+    box-sizing: content-box; margin-inline-start: -6px;
+    padding-inline-start: min(6px, calc(var(--slider-indicator-size) * 1000)); /* 0 at the minimum, else 6px */
+    border-radius: 0; background: var(--color-fill-strong);
+    transition: width 100ms var(--ease-out);
+  }
+  & [data-slot="slider-thumb"] {
+    width: 2px; height: 16px; border: 0; border-radius: 1px; box-shadow: none;
+    background: var(--color-fg); opacity: 0;
+    transition: inset-inline 100ms var(--ease-out), opacity 120ms ease;
+    &:has(:focus-visible) { box-shadow: none; outline: 0; opacity: 1; }
+    &[data-dragging] { opacity: 1; }
+  }
+  /* At rest the fill's edge shows the value; the line appears while you interact, so it never cuts the label. */
+  @media (hover: hover) { &:hover [data-slot="slider-thumb"] { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { & :is([data-slot="slider-indicator"], [data-slot="slider-thumb"]) { transition: none; } }
+  &:where([data-motion="reduce"] *) :is([data-slot="slider-indicator"], [data-slot="slider-thumb"]) { transition: none; }
+  &:has(:focus-visible) { outline: 2px solid transparent; outline-offset: 1px; box-shadow: var(--shadow-focus); }
+  /* The label row floats over the fill. */
+  & > :not([data-slot="slider-control"]) {
+    position: absolute; inset: 0 12px; z-index: 1; display: flex; align-items: center; justify-content: space-between;
+    pointer-events: none;
+  }
+  & [data-slot="slider-value"] { color: var(--color-fg); font-size: 13px; }
+}
+
+/* Touch: every control in the bars is 40px (icon buttons 40 by 40, segmented items 36 inside their 2px inset), and
+   popup rows 40 to match the dial rows they sit beside. The stage keeps 8px more air for them (chart-stage.tsx). */
+@media (pointer: coarse) {
+  :is([data-stage-chrome], [data-stage-controls]) {
+    --control: 40px;
+    :is([data-slot="button"], [data-slot="select-trigger"], [data-slot="slider"][data-variant="dial"]) { height: var(--control); }
+    [data-slot="segmented-control-item"] { min-width: 36px; height: 36px; }
+    :is([data-slot="menu-item"], [data-slot="menu-radio-item"], [data-slot="select-item"]) { min-height: 40px; }
+  }
+}
+
+
+/* 6. Charts. Colour roles on the accent ramps, so they scale to any hue. Charts read only these names. The accent
+      picks the hue (default "lumina": lime panels, green markers, forest), light and dark pick the step.
+      Measured contrast: scripts/contrast.mjs. */
+@theme inline {
+  --color-background: var(--color-canvas);
+  --color-foreground: var(--color-fg);
+  --color-muted: var(--viz-track);
+  --color-muted-foreground: var(--color-fg-muted);
+  --color-border: var(--color-line-strong);
+  --color-ring: var(--accent-solid);
+  --color-viz-lead: var(--viz-lead);           /* the marker: a bar, a cell, a dot */
+  --color-viz-lead-ink: var(--viz-lead-ink);   /* text on the marker colour (a tag, a number on a bar) */
+  --color-viz-warn-ink: var(--viz-warn-ink);
+  --color-viz-warn-edge: var(--viz-warn-edge); /* yellow alone is 1.5:1 on paper; its edge carries the 3:1 */
+  --color-viz-alert-ink: var(--viz-alert-ink);
+  --color-viz-panel: var(--viz-panel);         /* a readout panel or row highlight */
+  --color-viz-panel-ink: var(--viz-panel-ink); /* text on the panel */
+  --color-viz-deep: var(--viz-deep);           /* the inverse panel */
+  --color-viz-deep-ink: var(--viz-deep-ink);   /* text on the inverse panel */
+  --color-viz-warn: var(--viz-warn);           /* a middling share */
+  --color-viz-alert: var(--viz-alert);         /* a share that needs attention */
+  --color-viz-contrast: var(--viz-contrast);   /* the series compared against the lead */
+  --color-viz-track: var(--viz-track);         /* an empty cell or track */
+  --color-viz-hatch: var(--viz-hatch);         /* hatch and hairline rules */
+  --color-viz-label: var(--viz-label);         /* mono labels */
+  --font-heading: var(--font-sans);
+  --font-data: var(--font-sans);
+}
+/* Accent-driven roles, re-declared on every [data-accent] like the rest of the ramp. */
+:root, [data-accent] {
+  /* Frantic's accent pair: 700 with white (light), 400 with near-black (dark) reach 4.5:1 for every hue, and
+     3:1 on the page. Lumina's green moves one step darker in light (600 to 700) to get there. */
+  --viz-lead: var(--accent-solid);
+  --viz-lead-ink: var(--accent-on);
+  --viz-panel: light-dark(var(--accent-200), var(--accent-300));
+  --viz-deep: light-dark(var(--accent-950), var(--accent-900));
+  --viz-deep-ink: var(--accent-200);
+}
+:root {
+  --viz-panel-ink: var(--color-neutral-950);
+  --viz-warn: var(--color-yellow-400);
+  --viz-warn-ink: var(--color-neutral-950);
+  --viz-warn-edge: light-dark(var(--color-yellow-700), var(--color-yellow-400));
+  --viz-alert: light-dark(var(--color-orange-600), var(--color-orange-500)); /* 500 is 2.8:1 on paper */
+  --viz-alert-ink: var(--color-neutral-950);
+  --viz-contrast: light-dark(var(--color-violet-500), var(--color-violet-400));
+  --viz-track: light-dark(var(--color-olive-200), var(--color-olive-800));
+  --viz-hatch: var(--color-line-strong);
+  --viz-label: var(--color-fg-subtle);
+  --viz-ink: var(--color-fg);      /* for hand-written CSS in a chart, e.g. color-mix() toward the ink */
+  --viz-paper: var(--color-canvas);
+}
+
+/* 7. The chart stage (lagaf). One chart fills the screen and never scrolls; four bars float over it: the chart menu
+      top left; colour, grid and theme top right; Replay and the chart's controls bottom left; previous and next
+      bottom right. Keys: ← → chart, ↑ ↓ colour, D theme, G grid, R replay, C motion, H hide the bars. */
+html:has([data-chart-stage]) { overflow: hidden; }
+[data-chart-stage][data-stage-frame] {
+  position: fixed; inset: 0; display: block; width: auto; min-height: 0;
+  overflow: hidden; background: var(--color-canvas);
+}
+
+/* The chart menu is a mega menu: one column per row of charts (--cols, up to 4), 2 then 1 on narrower screens.
+   Hairline dividers sit between columns (and between wrapped rows), inside the popup's 4px padding like the
+   separator, never out to its edge: 4px either side of each line. The line and its air sit outside a column's
+   13rem, so every column's rows are the same width. */
+.chart-menu {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 1), auto);
+  column-gap: 4px;
+  max-width: calc(100vw - 32px);
+  & > .chart-menu-col { box-sizing: content-box; width: 13rem; }
+  & > [data-slot="menu-separator"] { margin-inline: 0; }
+  & > .chart-menu-col:not([data-col4="0"]) { padding-inline-start: 4px; border-inline-start: 1px solid var(--color-line); }
+  & > .chart-menu-col:not([data-row4="0"]) { margin-block-start: 4px; padding-block-start: 4px; border-block-start: 1px solid var(--color-line); }
+  @media (max-width: 960px) {
+    grid-template-columns: repeat(min(var(--cols, 1), 2), auto);
+    & > .chart-menu-col:is(*, :not([data-col4="0"])) { padding-inline-start: 0; border-inline-start: 0; }
+    & > .chart-menu-col:is(*, :not([data-row4="0"])) { margin-block-start: 0; padding-block-start: 0; border-block-start: 0; }
+    & > .chart-menu-col:not([data-col2="0"]) { padding-inline-start: 4px; border-inline-start: 1px solid var(--color-line); }
+    & > .chart-menu-col:not([data-row2="0"]) { margin-block-start: 4px; padding-block-start: 4px; border-block-start: 1px solid var(--color-line); }
+  }
+  @media (max-width: 520px) {
+    grid-template-columns: minmax(0, 1fr);
+    & > .chart-menu-col { width: auto; }
+    & > .chart-menu-col:is(*, :not([data-col4="0"]), :not([data-col2="0"])) { padding-inline-start: 0; border-inline-start: 0; }
+    & > .chart-menu-col:not([data-row1="0"]) { margin-block-start: 4px; padding-block-start: 4px; border-block-start: 1px solid var(--color-line); }
+  }
+}
+
+/* 8. The mark (src/components/Mark.tsx, MarkLoader.astro). Ink and the accent's lead colour; while loading, the
+      accent passes from the upper cell to the lower and back, 1.2 s, on the charts' curve. Reduced motion: at rest. */
+.mark .mark-ink { fill: var(--viz-ink); }
+.mark .mark-accent { fill: var(--viz-lead); }
+.mark .mark-a { opacity: 0; }
+@keyframes mark-pass {
+  0% { opacity: 0; }
+  20%, 50% { opacity: 1; }
+  70%, 100% { opacity: 0; }
+}
+.mark-loading :is(.mark-a, .mark-b) { animation: mark-pass 1200ms cubic-bezier(0.23, 1, 0.32, 1) infinite both; }
+.mark-loading .mark-b { animation-delay: -600ms; }
+@variant motion-reduce {
+  .mark-loading :is(.mark-a, .mark-b) { animation: none; }
+}
+/* The page's loader waits 400 ms before it shows, so a fast load never flashes it. Without a script it would wait
+   forever, so a line says so instead. */
+@keyframes mark-arrive { from { opacity: 0; } }
+.mark-loader > svg { animation: mark-arrive 200ms ease-out 400ms both; }
+.mark-loader:has(.mark-loader-nojs) > svg { display: none; }
+.mark-loader-nojs { color: var(--color-fg-muted); font-size: 16px; line-height: 24px; }

@@ -1,0 +1,15 @@
+---
+// The mark's loader as plain HTML, for the moment before a page's JavaScript arrives (the client:only fallback).
+// Same drawing and classes as src/components/Mark.tsx.
+---
+
+<div class="mark-loader fixed inset-0 grid place-items-center" role="status">
+  <svg viewBox="0 0 16 16" width="32" height="32" shape-rendering="crispEdges" class="mark mark-loading" aria-hidden="true">
+    <rect class="mark-ink" x="0" y="9" width="7" height="7"></rect>
+    <rect class="mark-ink" x="9" y="0" width="7" height="7"></rect>
+    <rect class="mark-accent mark-a" x="0" y="9" width="7" height="7"></rect>
+    <rect class="mark-accent mark-b" x="9" y="0" width="7" height="7"></rect>
+  </svg>
+  <span class="sr-only">Loading</span>
+  <noscript><p class="mark-loader-nojs">These charts need JavaScript.</p></noscript>
+</div>

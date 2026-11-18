@@ -1,0 +1,22 @@
+---
+import Layout from "@/layouts/main.astro"
+import MarkLoader from "@/components/MarkLoader.astro"
+import { ChartStage } from "@/canvas/chart-stage"
+import { sets } from "@/canvas/registry"
+
+const first = sets.brand.items[0]
+---
+
+<Layout title={first ? `${first.title} · lagaf brand` : "Brand · lagaf"} description={first?.idea}>
+  {
+    first ? (
+      <ChartStage client:only="react" set="brand" initial={first.slug}>
+        <MarkLoader slot="fallback" />
+      </ChartStage>
+    ) : (
+      <main class="grid min-h-dvh place-items-center p-4 text-sm text-fg-muted">
+        <h1>No brand frames yet.</h1>
+      </main>
+    )
+  }
+</Layout>

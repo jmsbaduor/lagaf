@@ -20,3 +20,10 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+
+# local notes, editor and agent files
+.notes/
+.claude/*
+!.claude/skills/
+.vscode/

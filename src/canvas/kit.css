@@ -1,0 +1,103 @@
+/*
+ * Shared entrance motion for canvas frames. These are CSS animations on purpose:
+ * Frame finishes them on a first click or key through root.getAnimations(), and the stage paces them.
+ * Per element: style={delay(120, 600)} sets --viz-delay and --viz-dur.
+ *
+ * One curve, frantic's --ease-out. No springs, no bounce. Only what explains the data moves:
+ * bars and rules grow from their baseline, pixel groups wipe in, supporting text fades. Headers never move.
+ */
+:root {
+  --viz-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Hover and focus answers in a frame: Tailwind's transition-* utilities default to 150ms on the kit's curve.
+   A knob's answer sets duration-200 itself. */
+[data-frame] {
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: var(--viz-ease);
+}
+
+@keyframes viz-fade {
+  from {
+    opacity: 0;
+  }
+}
+/* From zero, or from --viz-from to show a change (an after bar leaving its before length). */
+@keyframes viz-grow-x {
+  from {
+    scale: var(--viz-from, 0) 1;
+  }
+}
+@keyframes viz-grow-y {
+  from {
+    scale: 1 0;
+  }
+}
+/* A pixel group revealed a column at a time: one animation for the whole group, not one per cell.
+   Set --viz-steps to the group's column count. */
+@keyframes viz-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  /* Explicit: inset() can't interpolate to the element's own "none", it would jump at the half. */
+  to {
+    clip-path: inset(0);
+  }
+}
+
+.viz-fade,
+.viz-grow-x,
+.viz-grow-y,
+.viz-wipe {
+  animation-duration: var(--viz-dur, 600ms);
+  animation-timing-function: var(--viz-ease);
+  animation-delay: var(--viz-delay, 0ms);
+  animation-fill-mode: both;
+}
+/* A fade only supports something else that moves, so it is short. */
+.viz-fade {
+  animation-name: viz-fade;
+  animation-duration: var(--viz-dur, 200ms);
+}
+.viz-grow-x {
+  animation-name: viz-grow-x;
+  transform-origin: left center;
+}
+.viz-grow-y {
+  animation-name: viz-grow-y;
+  transform-origin: center bottom;
+}
+.viz-wipe {
+  animation-name: viz-wipe;
+  animation-timing-function: steps(var(--viz-steps, 1), end);
+}
+
+/* Every number in a chart uses tabular figures, so digits line up and don't shift while they count. */
+[data-frame] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Diagonal hatch for "headroom" behind bars. */
+.viz-hatch {
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--viz-hatch) 0 1px,
+    transparent 1px 12px
+  );
+}
+
+/* Reduced motion (the OS or the stage's switch) lands on the end state at once. */
+@media (prefers-reduced-motion: reduce) {
+  [data-frame] *,
+  [data-frame] *::before,
+  [data-frame] *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+  }
+}
+:root[data-motion="reduce"] :is([data-frame] *, [data-frame] *::before, [data-frame] *::after) {
+  animation-duration: 1ms !important;
+  animation-delay: 0ms !important;
+  transition-duration: 1ms !important;
+}

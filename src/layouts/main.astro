@@ -1,25 +1,58 @@
 ---
 import "@/styles/global.css"
-import type { ThemeId } from "@/lib/themes"
 
 interface Props {
   title: string
   description?: string
-  theme?: ThemeId
+  /** A share card under public/, e.g. /og/waffle.png */
+  image?: string
 }
 
-const { title, description, theme = "default" } = Astro.props
+const SITE = "https://lagaf.fly.dev"
+const { title, description = "Themable, animated infographic charts.", image = "/og/home.png" } = Astro.props
 ---
 
-<html lang="en" data-theme={theme}>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
-    {description && <meta name="description" content={description} />}
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta property="og:site_name" content="lagaf" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={`${SITE}${image}`} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={`${SITE}${image}`} />
+    <script is:inline>
+      // The stored theme (or the system's), grid, accent and ?clean (bars hidden), before paint.
+      ;(function () {
+        try {
+          var r = document.documentElement
+          var t = localStorage.getItem("theme")
+          if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+          r.classList.remove("light", "dark")
+          r.classList.add(t)
+          r.setAttribute("data-theme", t)
+          r.style.colorScheme = t
+          var g = localStorage.getItem("grid")
+          if (g === "grid" || g === "boxes") r.setAttribute("data-grid", g)
+          var a = localStorage.getItem("accent")
+          if (a) r.setAttribute("data-accent", a)
+          if (new URLSearchParams(location.search).has("clean")) r.setAttribute("data-chrome", "off")
+        } catch (e) {}
+      })()
+    </script>
   </head>
-  <body class="antialiased">
+  <body>
     <slot />
   </body>
 </html>

@@ -1,0 +1,33 @@
+<!--
+  lagaf boot screen: what a chart page shows before its script runs, for the boot-screen frame to draw.
+  It mirrors src/components/MarkLoader.astro, the island's fallback on every page: the Pair mark's loader at 32 px,
+  and one line instead when there is no script. Static HTML and CSS; the mark's classes, its 400 ms wait and its loop
+  are in global.css, section 8.
+-->
+<style>
+  .lg-boot {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: var(--color-canvas);
+  }
+  .lg-boot-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>
+<div class="lg-boot mark-loader" role="status">
+  <svg viewBox="0 0 16 16" width="32" height="32" shape-rendering="crispEdges" class="mark mark-loading" aria-hidden="true">
+    <rect class="mark-ink" x="0" y="9" width="7" height="7"></rect>
+    <rect class="mark-ink" x="9" y="0" width="7" height="7"></rect>
+    <rect class="mark-accent mark-a" x="0" y="9" width="7" height="7"></rect>
+    <rect class="mark-accent mark-b" x="9" y="0" width="7" height="7"></rect>
+  </svg>
+  <span class="lg-boot-sr">Loading the chart</span>
+  <noscript><p class="mark-loader-nojs">These charts need JavaScript to draw.</p></noscript>
+</div>
