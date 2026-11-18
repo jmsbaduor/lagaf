@@ -1,16 +1,6 @@
 /*
- * Pixel cells for row 02. A cell paints var(--px); data-dim fades it toward the paper.
- * Colour changes are transitions (interruptible), 150ms on the kit's curve; entrances are the kit's classes.
+ * The timeline's sequential ramp: pale lime to forest, from tokens, so every brand and mode gets its own ramp.
  */
-.px-cell {
-  background-color: var(--px);
-  transition: background-color 150ms var(--viz-ease);
-}
-.px-cell[data-dim] {
-  background-color: color-mix(in oklch, var(--px) 22%, var(--viz-paper));
-}
-
-/* Pale lime to forest, from tokens, so every brand and mode gets its own ramp. */
 .px-ramp-0 {
   background-color: color-mix(in oklch, var(--viz-panel) 45%, var(--viz-paper));
 }

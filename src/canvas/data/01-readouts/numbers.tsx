@@ -1,8 +1,7 @@
-import { CountUp, delay, Frame, Header, TOP, useReading } from "@/canvas/kit"
+import { band, CountUp, Frame, Header, note, row, Rule, TOP, useReading } from "@/canvas/kit"
 import { cn } from "@/lib/utils"
 
 import { TRAFFIC } from "../facts"
-import { band, note, row } from "./parts"
 
 const ROWS = [TRAFFIC.pageViews, TRAFFIC.teams, TRAFFIC.agentShare, TRAFFIC.answerTime]
 
@@ -29,21 +28,16 @@ export default function Numbers() {
           <li
             key={r.tag}
             tabIndex={0}
-            data-active={active === i || undefined}
             className={cn(row, "grid grid-cols-[648px_1fr] py-6")}
             {...bind(i)}
           >
             <span aria-hidden="true" className={band} />
-            <span
-              aria-hidden="true"
-              className="viz-grow-x absolute inset-x-0 bottom-0 h-px bg-border"
-              style={delay(AT[i], COUNT)}
-            />
+            <Rule at={AT[i]} duration={COUNT} />
             {/* Pulled 4px left by its indent (the digits' side bearing), so the ink starts on the rule's edge. */}
             <p className="-indent-1 text-[96px] leading-[96px] font-medium tracking-[-0.04em] text-muted-foreground transition-colors group-data-active:text-foreground">
               <CountUp value={r.value} delay={AT[i]} duration={COUNT} format={r.format} />
             </p>
-            <p className={cn(note, "pt-2 text-muted-foreground transition-colors group-data-active:text-foreground")}>
+            <p className={cn(note, "pt-2 font-medium text-muted-foreground transition-colors group-data-active:text-foreground")}>
               {r.note.join(" ")}
             </p>
           </li>

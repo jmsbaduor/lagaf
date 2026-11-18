@@ -1,8 +1,10 @@
-import { CountUp, delay, Frame, Header, TOP, useReading } from "@/canvas/kit"
+import { CountUp, Fill, focusRing, Frame, Header, TOP, useReading } from "@/canvas/kit"
 import { cn } from "@/lib/utils"
 
 import { GROWTH } from "../facts"
-import { focusRing, seriesText } from "./parts"
+
+/** A series colour for large text, pulled 20% toward the ink so it holds 3:1 in every brand. */
+const seriesText = (token: string) => ({ color: `color-mix(in oklch, var(${token}) 80%, var(--viz-ink))` })
 
 const STYLE = [
   { fill: "bg-viz-lead", token: "--viz-lead" },
@@ -22,7 +24,7 @@ const GROW = 700
 const AT = [100, 200]
 
 export default function Growth() {
-  const { active, bind } = useReading<number>()
+  const { active, bind, dim } = useReading<number>()
   const on = active === null ? null : GROWTH[active]
 
   return (
@@ -39,44 +41,39 @@ export default function Growth() {
         className="absolute left-[72px] flex flex-col"
         style={{ top: TOP, width: TRACK, gap: GAP }}
       >
-        {GROWTH.map((d, i) => {
-          const dim = active !== null && active !== i
-          return (
-            <li key={d.label} tabIndex={0} aria-label={`${d.label}: ${d.value}×`} className={focusRing} {...bind(i)}>
-              <div aria-hidden="true" className="flex items-center">
-                <p
-                  className={cn(
-                    // The indent takes up the digits' 8px side bearing, so the ink starts on the track's edge.
-                    "w-[648px] -indent-2 font-heading text-[192px] leading-[196px] font-medium tracking-[-0.05em] transition-colors",
-                    dim && "text-muted-foreground"
-                  )}
-                  style={dim ? undefined : seriesText(STYLE[i].token)}
-                >
-                  <CountUp value={d.value} delay={AT[i]} duration={GROW} format={(n) => `${Math.round(n)}×`} />
-                </p>
-                {/* A 44px line, so centred on the number's 196 it sits on the grid (76 down), cap centres level. */}
-                <p
-                  className={cn(
-                    "text-[32px] leading-11 tracking-[-0.02em] transition-colors",
-                    dim && "text-muted-foreground"
-                  )}
-                >
-                  {d.label}
-                </p>
-              </div>
-              <div aria-hidden="true" className="relative mt-6 h-3 bg-viz-track">
-                <div
-                  className={cn(
-                    "viz-grow-x absolute inset-y-0 left-0 transition-opacity",
-                    STYLE[i].fill,
-                    dim && "opacity-30"
-                  )}
-                  style={{ width: (d.value / MAX) * TRACK, ...delay(AT[i], GROW) }}
-                />
-              </div>
-            </li>
-          )
-        })}
+        {GROWTH.map((d, i) => (
+          <li key={d.label} tabIndex={0} aria-label={`${d.label}: ${d.value}×`} className={focusRing} {...bind(i)}>
+            <div aria-hidden="true" className="flex items-center">
+              <p
+                className={cn(
+                  // The indent takes up the digits' 8px side bearing, so the ink starts on the track's edge.
+                  "w-[648px] -indent-2 font-heading text-[192px] leading-[196px] font-medium tracking-[-0.05em] transition-colors",
+                  dim(i) && "text-muted-foreground"
+                )}
+                style={dim(i) ? undefined : seriesText(STYLE[i].token)}
+              >
+                <CountUp value={d.value} delay={AT[i]} duration={GROW} format={(n) => `${Math.round(n)}×`} />
+              </p>
+              {/* A 44px line, so centred on the number's 196 it sits on the grid (76 down), cap centres level. */}
+              <p
+                className={cn(
+                  "text-[32px] leading-11 tracking-[-0.02em] transition-colors",
+                  dim(i) && "text-muted-foreground"
+                )}
+              >
+                {d.label}
+              </p>
+            </div>
+            <div aria-hidden="true" className="relative mt-6 h-3 bg-viz-track">
+              <Fill
+                size={(d.value / MAX) * TRACK}
+                at={AT[i]}
+                duration={GROW}
+                className={cn("transition-opacity", STYLE[i].fill, dim(i) && "opacity-30")}
+              />
+            </div>
+          </li>
+        ))}
       </ul>
     </Frame>
   )

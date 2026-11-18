@@ -1,3 +1,5 @@
+// What every chart is built from, in five parts: the frame and header, readings, type, motion, and marks.
+// Colours are the chart roles in src/styles/global.css (section 6); docs/charts.md has the rules behind each part.
 import {
   createContext,
   useCallback,
@@ -6,6 +8,7 @@ import {
   useRef,
   useState,
   type ComponentProps,
+  type CSSProperties,
   type PointerEvent,
   type ReactNode,
 } from "react"
@@ -13,6 +16,8 @@ import {
 import { useStage } from "@/components/stage"
 import { cn } from "@/lib/utils"
 import "./kit.css"
+
+// ── Frame and header ────────────────────────────────────────────────────────────────────────────────────────────
 
 /** The safe area every chart is drawn in, in chart px. The stage zooms it to the screen and lets the paper run on. */
 export const FRAME_W = 1440
@@ -115,31 +120,117 @@ export function Header({
   )
 }
 
+// ── Readings ────────────────────────────────────────────────────────────────────────────────────────────────────
+
 /**
  * What a chart is reading: the hovered item (mouse or pen), else the focused one. Touch goes through focus, since a
- * tap also leaves. Spread `bind(key)` on each item and show `active` in the Header's hint; when nothing is read,
- * the hint returns to its instruction.
+ * tap also leaves. Spread `bind(key)` on each item (it marks the read one `data-active`) and show `active` in the
+ * Header's hint; when nothing is read, the hint returns to its instruction. `dim(key)` is true for every item but
+ * the read one, while one is: fade its marks and mute its words, so they still read.
  */
 export function useReading<K>() {
   const [hover, setHover] = useState<K | null>(null)
   const [focus, setFocus] = useState<K | null>(null)
+  const active = hover ?? focus
   const bind = (key: K) => ({
+    "data-active": active === key || undefined,
     onPointerEnter: (e: PointerEvent) => e.pointerType !== "touch" && setHover(key),
     onPointerLeave: (e: PointerEvent) => e.pointerType !== "touch" && setHover(null),
     onFocus: () => setFocus(key),
     onBlur: () => setFocus(null),
   })
-  return { active: hover ?? focus, bind }
+  const dim = (key: K) => active !== null && active !== key
+  return { active, bind, dim }
 }
+
+/** Visible focus for chart items that take focus (tabIndex={0}) and have no band. */
+export const focusRing =
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-8 focus-visible:outline-ring"
+
+/** A row that can be read (focusable, marked `data-active` while read): the band below positions against it. */
+export const row = "group relative isolate outline-none"
+
+/**
+ * The row's hover and focus band: a pale panel tint bleeding 16px past the text,
+ * carrying the keyboard focus ring too. Place it as an empty span inside the row.
+ */
+export const band = cn(
+  "pointer-events-none absolute -inset-x-4 inset-y-0 -z-10 bg-viz-panel/40 opacity-0",
+  "transition-opacity group-data-active:opacity-100",
+  "outline-ring group-focus-visible:outline-2 group-focus-visible:-outline-offset-2"
+)
+
+/** A group of choices: a fieldset with a legend for screen readers. */
+export function Choices({ legend, className, children }: { legend: string; className?: string; children: ReactNode }) {
+  return (
+    <fieldset className={className}>
+      <legend className="sr-only">{legend}</legend>
+      {children}
+    </fieldset>
+  )
+}
+
+/**
+ * One choice, a native radio: Tab enters and leaves the group, arrow keys move through it, click or tap focuses
+ * one. Spread `bind` on it to read what is hovered or focused. Pass `checked` and `onPick` only where a pick
+ * outlasts the reading (the dot matrix keeps its share).
+ */
+export function Choice({
+  name,
+  value,
+  checked,
+  onPick,
+  className,
+  children,
+  ...props
+}: Omit<ComponentProps<"label">, "onChange"> & {
+  name: string
+  value: string
+  checked?: boolean
+  onPick?: (value: string) => void
+}) {
+  return (
+    <label
+      className={cn("relative cursor-pointer outline-offset-4 outline-ring has-[:focus-visible]:outline-2", className)}
+      {...props}
+    >
+      <input
+        type="radio"
+        name={name}
+        value={value}
+        checked={checked}
+        onChange={() => onPick?.(value)}
+        className="sr-only"
+      />
+      {children}
+    </label>
+  )
+}
+
+// ── Type ────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+/** Label's face, for text inside other elements (Label itself is a <p>): Geist Mono 14/16, uppercase. */
+export const labelText = "font-mono text-[14px] leading-4 font-medium uppercase"
+
+/** The small label: a bar's name, a stage's date, a share beside a bar. */
+export const smallLabelText = "font-mono text-[12px] leading-4 font-medium uppercase"
+
+/** A note under or beside a number, a table cell, a caption: 22/28. Readout notes add font-medium. */
+export const note = "text-[22px] leading-7 tracking-[-0.01em]"
+
+/** A panel's number: Geist Mono 102/104, set right so it ends on the panel's rule. */
+export const panelNumber = "text-right font-mono text-[102px] leading-[104px] tracking-[-0.02em]"
+
+/**
+ * Geist Mono draws "s" and "M" inside their cells, so a right-aligned reading ending in one stops short of the
+ * rule's end. This moves it out by the gap, so every reading's ink ends where a "%" and the stamps do.
+ */
+const INK_END: Record<string, string> = { s: "relative left-[0.07em]", M: "relative left-[0.04em]" }
+export const inkEnd = (reading: string) => INK_END[reading.at(-1) ?? ""]
 
 /** Mono uppercase label, Lumina's instrument voice. */
 export function Label({ className, ...props }: ComponentProps<"p">) {
-  return (
-    <p
-      className={cn("font-mono text-[14px] leading-4 font-medium uppercase text-viz-label", className)}
-      {...props}
-    />
-  )
+  return <p className={cn(labelText, "text-viz-label", className)} {...props} />
 }
 
 /**
@@ -156,6 +247,16 @@ export function Tag({ className, children }: { className?: string; children: str
     </Label>
   )
 }
+
+// ── Motion ──────────────────────────────────────────────────────────────────────────────────────────────────────
+
+/** Inline style for the kit's entrance classes (kit.css): when it starts and how long it takes, in ms. */
+export const delay = (ms: number, dur?: number) =>
+  ({ "--viz-delay": `${ms}ms`, ...(dur ? { "--viz-dur": `${dur}ms` } : {}) }) as CSSProperties
+
+/** Inline style for a `viz-wipe`: `steps` columns revealed one at a time over `dur`. */
+export const wipe = (ms: number, dur: number, steps: number) =>
+  ({ ...delay(ms, dur), "--viz-steps": steps }) as CSSProperties
 
 // The kit's curve, cubic-bezier(0.22, 1, 0.36, 1), is close to an ease-out quint, so a count lands with its mark.
 const easeOut = (t: number) => 1 - (1 - t) ** 5
@@ -211,6 +312,127 @@ export function CountUp({
   )
 }
 
-/** Inline style helper for the kit's entrance classes. */
-export const delay = (ms: number, dur?: number) =>
-  ({ "--viz-delay": `${ms}ms`, ...(dur ? { "--viz-dur": `${dur}ms` } : {}) }) as React.CSSProperties
+// ── Marks ───────────────────────────────────────────────────────────────────────────────────────────────────────
+
+/**
+ * A hairline that draws from the left on entrance: a row's rule, or a panel's under its number. Absolute, at the
+ * foot of its `relative` box (`top-0 bottom-auto` for a head rule); bg-border on the paper, `bg-current` on a panel.
+ * Give it the delay and duration of the number it rules, so the two land together.
+ */
+export function Rule({ at, duration, className }: { at: number; duration: number; className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn("viz-grow-x absolute inset-x-0 bottom-0 h-px bg-border", className)}
+      style={delay(at, duration)}
+    />
+  )
+}
+
+/**
+ * A bar's fill, growing from its baseline on entrance: from the left (`x`, `size` is its width) or the bottom
+ * (`y`, its height). It sits in its track, a `relative` box in bg-viz-track or viz-hatch. Lengths are whole 4px.
+ * For a length a knob changes, leave out `size`, pass `inset-0` and scale a child in 200ms (the token bar).
+ */
+export function Fill({
+  axis = "x",
+  size,
+  at,
+  duration,
+  className,
+  children,
+}: {
+  axis?: "x" | "y"
+  size?: number
+  at: number
+  duration: number
+  className?: string
+  children?: ReactNode
+}) {
+  const x = axis === "x"
+  return (
+    <div
+      className={cn("absolute", x ? "viz-grow-x inset-y-0 left-0" : "viz-grow-y inset-x-0 bottom-0", className)}
+      style={{ [x ? "width" : "height"]: size, ...delay(at, duration) }}
+    >
+      {children}
+    </div>
+  )
+}
+
+/**
+ * A pixel that fills: an empty cell (the track) with its colour fading in on top at `at`, or there from the start
+ * without `at`. `dim` fades the colour toward the paper, so it still reads; a colour change is a 150ms transition,
+ * `ripple` ms late. Size and shape go on `className` (`rounded-full` for a dot). `color` is a role: var(--viz-lead).
+ */
+export function Cell({
+  color,
+  at,
+  duration,
+  dim,
+  ripple,
+  className,
+  style,
+}: {
+  color: string
+  at?: number
+  duration?: number
+  dim?: boolean
+  ripple?: number
+  className?: string
+  style?: CSSProperties
+}) {
+  return (
+    <span className={cn("bg-viz-track", className)} style={style}>
+      <span
+        data-dim={dim || undefined}
+        className={cn("px-cell block size-full rounded-[inherit]", at !== undefined && "viz-fade")}
+        style={
+          {
+            "--px": color,
+            ...(at !== undefined && delay(at, duration)),
+            transitionDelay: ripple ? `${ripple}ms` : undefined,
+          } as CSSProperties
+        }
+      />
+    </span>
+  )
+}
+
+/** A key entry: a 16px swatch and its name, 12px apart, in the label face. More children follow the name. */
+export function Key({ color, children }: { color: string; children: ReactNode }) {
+  return (
+    <span className={cn(labelText, "flex items-center gap-3")}>
+      <span aria-hidden="true" className="size-4 shrink-0" style={{ backgroundColor: color }} />
+      {children}
+    </span>
+  )
+}
+
+const SOFT = "bg-viz-panel text-viz-panel-ink"
+const SOLID = "bg-viz-lead text-viz-lead-ink"
+
+/**
+ * A readout panel, 24px in, with its tag at the top left. Soft is the panel colour with a lead tag; `solid` swaps
+ * the two, so the tag always reads against its panel. A register change swaps every colour in 200ms.
+ */
+export function Panel({
+  tag,
+  solid = false,
+  className,
+  style,
+  children,
+}: {
+  tag: string
+  solid?: boolean
+  className?: string
+  style?: CSSProperties
+  children: ReactNode
+}) {
+  return (
+    <div className={cn("flex flex-col p-6 transition-colors duration-200", solid ? SOLID : SOFT, className)} style={style}>
+      <Tag className={cn("transition-colors duration-200", solid ? SOFT : SOLID)}>{tag}</Tag>
+      {children}
+    </div>
+  )
+}

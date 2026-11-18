@@ -77,6 +77,16 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* A Cell's fill paints var(--px); data-dim fades it toward the paper. Colour changes are transitions
+   (interruptible), 150ms on the kit's curve; entrances are the classes above. */
+.px-cell {
+  background-color: var(--px);
+  transition: background-color 150ms var(--viz-ease);
+}
+.px-cell[data-dim] {
+  background-color: color-mix(in oklch, var(--px) 22%, var(--viz-paper));
+}
+
 /* Diagonal hatch for "headroom" behind bars. */
 .viz-hatch {
   background-image: repeating-linear-gradient(

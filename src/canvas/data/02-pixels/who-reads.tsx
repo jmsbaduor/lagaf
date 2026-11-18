@@ -1,10 +1,21 @@
-import { useId, type CSSProperties } from "react"
+import { useId } from "react"
 
-import { delay, Frame, Header, TOP, useReading } from "@/canvas/kit"
+import {
+  Choice,
+  Choices,
+  delay,
+  Frame,
+  Header,
+  Key,
+  labelText,
+  smallLabelText,
+  TOP,
+  useReading,
+  wipe,
+} from "@/canvas/kit"
 import { cn } from "@/lib/utils"
 
 import { agentCols, READER_COLS, READERS } from "../facts"
-import { Choice, Choices, labelText } from "./parts"
 
 // Columns of three 12px cells on a 16px pitch, people first, as in the deck. Every bar has the same 50 columns.
 // Rows of 108 hold a 44px bar 32 from their top, so bars and names land on the 4px grid; five rows run to 804.
@@ -19,7 +30,7 @@ const AT = [100, 180, 240, 280, 310]
 
 export default function WhoReads() {
   const name = useId()
-  const { active, bind } = useReading<string>()
+  const { active, bind, dim } = useReading<string>()
   const source = READERS.find((s) => s.name === active)
 
   return (
@@ -40,15 +51,14 @@ export default function WhoReads() {
         className="absolute left-[328px] grid grid-cols-[repeat(2,96px)] gap-8"
         style={{ top: TOP }}
       >
-        <Key className="bg-viz-label">People</Key>
-        <Key className="bg-viz-lead">Agents</Key>
+        <Key color="var(--viz-label)">People</Key>
+        <Key color="var(--viz-lead)">Agents</Key>
       </div>
 
       {/* A source that isn't read fades its bar; its words turn muted, so they still read at 4.5:1. */}
       <Choices legend="Show a source's split">
         {READERS.map((s, r) => {
           const agents = agentCols(s.agents)
-          const dim = active !== null && active !== s.name
           return (
             <Choice
               key={s.name}
@@ -63,7 +73,7 @@ export default function WhoReads() {
                 className={cn(
                   labelText,
                   "w-[256px] shrink-0 leading-5 font-semibold transition-colors",
-                  dim && "text-muted-foreground"
+                  dim(s.name) && "text-muted-foreground"
                 )}
               >
                 {s.name}
@@ -71,10 +81,10 @@ export default function WhoReads() {
                   : {100 - s.agents}% people, {s.agents}% agents
                 </span>
               </span>
-              <span aria-hidden="true" className={cn("transition-opacity", dim && "opacity-30")}>
+              <span aria-hidden="true" className={cn("transition-opacity", dim(s.name) && "opacity-30")}>
                 <span
                   className="viz-wipe grid auto-cols-[12px] grid-flow-col grid-rows-[repeat(3,12px)] gap-1"
-                  style={{ ...delay(AT[r], WIPE), "--viz-steps": READER_COLS } as CSSProperties}
+                  style={wipe(AT[r], WIPE, READER_COLS)}
                 >
                   {Array.from({ length: READER_COLS * ROWS }, (_, k) => (
                     <span
@@ -88,8 +98,9 @@ export default function WhoReads() {
               <span
                 aria-hidden="true"
                 className={cn(
-                  "viz-fade ml-4 flex flex-1 gap-4 font-mono text-[12px] leading-5 font-medium whitespace-nowrap uppercase transition-colors",
-                  dim && "text-muted-foreground"
+                  smallLabelText,
+                  "viz-fade ml-4 flex flex-1 gap-4 leading-5 whitespace-nowrap transition-colors",
+                  dim(s.name) && "text-muted-foreground"
                 )}
                 style={delay(AT[r] + WIPE - 100)}
               >
@@ -108,15 +119,5 @@ export default function WhoReads() {
         })}
       </Choices>
     </Frame>
-  )
-}
-
-/** A key entry: the swatch and its name, 12px apart, as in the waffle's key. */
-function Key({ className, children }: { className: string; children: string }) {
-  return (
-    <span className={cn(labelText, "flex items-center gap-3")}>
-      <span className={cn("size-4 shrink-0", className)} />
-      {children}
-    </span>
   )
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react"
 
 import { LAG as LAG_FACTS } from "@/canvas/data/facts"
-import { delay, useFinished } from "@/canvas/kit"
+import { delay, labelText, useFinished } from "@/canvas/kit"
 import { Mark } from "@/components/Mark"
 import { useStage } from "@/components/stage"
 import { cn } from "@/lib/utils"
@@ -12,8 +12,7 @@ import "./loading.css"
 // Spacing, as in row 01: a label sits 16 above its object, a caption 16 under its tile, groups 48 apart, and an
 // icon 8 from its word.
 
-/** The kit's Label look for text inside other elements (Label itself is a <p>). */
-export const labelText = "font-mono text-[14px] leading-4 font-medium uppercase"
+export { labelText }
 
 /** A hairline along the top, drawn as an inset shadow so it takes no space and every box stays on the grid. */
 export const rule = "shadow-[inset_0_1px_0_var(--viz-hatch)]"

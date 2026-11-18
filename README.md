@@ -36,24 +36,23 @@ Add `?clean` to a URL to hide the controls, or `?bare` to show the chart alone a
 - **Colour** comes from tokens only (`bg-viz-lead`, `text-viz-label` and so on), derived from the accent, so every chart re-skins with it.
 - **Brand exploration** lives in `src/canvas/brand/` and shows at `/brand/<slug>`.
 - **Decisions** are recorded in [docs/design/decisions.md](docs/design/decisions.md).
+- **New charts** start from `src/canvas/data/_template/` and follow [docs/charts.md](docs/charts.md).
 
 ## Check
 
 ```bash
-pnpm typecheck && pnpm lint && pnpm build
+pnpm check
 ```
 
-With the dev server running:
-
 ```bash
-node scripts/contrast.mjs
+pnpm check:browser
 ```
 
 ```bash
 node scripts/shoot.mjs /tmp/shots readout waffle
 ```
 
-`contrast.mjs` tests every colour pair in every accent and mode against WCAG. `shoot.mjs` captures charts in light and dark.
+`check` runs the typecheck, lint, build and facts check. `check:browser` tests every colour pair in every accent and mode against WCAG, and every chart's boxes against the 4px grid; it starts a dev server if none is running. `shoot.mjs` captures charts in light and dark.
 
 ## Deploy
 

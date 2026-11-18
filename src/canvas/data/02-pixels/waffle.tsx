@@ -1,10 +1,9 @@
 import { useId } from "react"
 
-import { countAt, CountUp, delay, Frame, Header, TOP, useReading } from "@/canvas/kit"
+import { Cell, Choice, Choices, countAt, CountUp, Frame, Header, Key, TOP, useReading } from "@/canvas/kit"
 import { cn } from "@/lib/utils"
 
 import { MARKDOWN_SHARE, WAFFLE } from "../facts"
-import { Choice, Choices, labelText, px } from "./parts"
 
 const KEYS = [
   { id: "on", label: "Markdown or llms.txt", share: MARKDOWN_SHARE, color: "var(--viz-lead)" },
@@ -21,9 +20,8 @@ const ORDER = WAFFLE.map((on, i) => (on ? WAFFLE.slice(0, i).filter(Boolean).len
 
 export default function Waffle() {
   const name = useId()
-  const { active, bind } = useReading<string>()
+  const { active, bind, dim } = useReading<string>()
   const key = KEYS.find((k) => k.id === active)
-  const dim = (id: string) => (active && active !== id ? "" : undefined)
 
   return (
     <Frame>
@@ -50,20 +48,20 @@ export default function Waffle() {
             key={k.id}
             name={name}
             value={k.id}
-            className="group flex items-center gap-3 px-3 py-2"
+            className="group block px-3 py-2"
             {...bind(k.id)}
           >
-            <span aria-hidden="true" className="px-cell size-4 shrink-0" style={px(k.color)} />
-            <span
-              className={cn(
-                labelText,
-                "text-muted-foreground transition-colors group-hover:text-foreground",
-                active === k.id && "text-foreground"
-              )}
-            >
-              {k.label}
-            </span>
-            <span className={cn(labelText, "ml-auto")}>{k.share}%</span>
+            <Key color={k.color}>
+              <span
+                className={cn(
+                  "text-muted-foreground transition-colors group-hover:text-foreground",
+                  active === k.id && "text-foreground"
+                )}
+              >
+                {k.label}
+              </span>
+              <span className="ml-auto">{k.share}%</span>
+            </Key>
           </Choice>
         ))}
       </Choices>
@@ -76,16 +74,16 @@ export default function Waffle() {
       >
         {WAFFLE.map((on, i) =>
           on ? (
-            // A lit cell is an empty one with its fill fading in on top.
-            <span key={i} className="size-14 bg-viz-track">
-              <span
-                data-dim={dim("on")}
-                className="px-cell viz-fade block size-full"
-                style={{ ...px(KEYS[0].color), ...delay(FILL_AT + countAt(ORDER[i], MARKDOWN_SHARE, COUNT), CELL) }}
-              />
-            </span>
+            <Cell
+              key={i}
+              color={KEYS[0].color}
+              at={FILL_AT + countAt(ORDER[i], MARKDOWN_SHARE, COUNT)}
+              duration={CELL}
+              dim={dim("on")}
+              className="size-14"
+            />
           ) : (
-            <span key={i} data-dim={dim("off")} className="px-cell size-14" style={px(KEYS[1].color)} />
+            <Cell key={i} color={KEYS[1].color} dim={dim("off")} className="size-14" />
           )
         )}
       </div>

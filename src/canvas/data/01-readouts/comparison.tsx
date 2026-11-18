@@ -1,7 +1,5 @@
-import { delay, Frame, Header, TOP, useReading } from "@/canvas/kit"
+import { band, delay, Frame, Header, note, row, Rule, TOP, useReading } from "@/canvas/kit"
 import { cn } from "@/lib/utils"
-
-import { band, row } from "./parts"
 
 const COLUMNS = ["Dimension", "Static docs", "Knowledge infrastructure"]
 
@@ -19,7 +17,7 @@ const RULE = 600
 const AT = [160, 220, 270, 310, 340]
 
 // Rows of 108 (28px text, 40 above and below) under a 40px head, so the table runs from TOP to 812.
-const cell = "py-10 text-left align-top text-[22px] leading-7 font-normal tracking-[-0.01em]"
+const cell = cn(note, "py-10 text-left align-top font-normal")
 
 export default function Comparison() {
   const { active, bind } = useReading<number>()
@@ -44,13 +42,7 @@ export default function Comparison() {
                 className="pb-4 text-left font-mono text-[20px] leading-6 font-medium text-viz-lead uppercase"
               >
                 {c}
-                {i === 0 && (
-                  <span
-                    aria-hidden="true"
-                    className="viz-grow-x absolute inset-x-0 bottom-0 h-px bg-foreground"
-                    style={delay(100, RULE)}
-                  />
-                )}
+                {i === 0 && <Rule at={100} duration={RULE} className="bg-foreground" />}
               </th>
             ))}
           </tr>
@@ -60,18 +52,13 @@ export default function Comparison() {
             <tr
               key={dimension}
               tabIndex={0}
-              data-active={active === i || undefined}
               className={cn(row, "viz-fade")}
               style={delay(AT[i])}
               {...bind(i)}
             >
               <th scope="row" className={cell}>
                 <span aria-hidden="true" className={band} />
-                <span
-                  aria-hidden="true"
-                  className="viz-grow-x absolute inset-x-0 bottom-0 h-px bg-border"
-                  style={delay(AT[i], RULE)}
-                />
+                <Rule at={AT[i]} duration={RULE} />
                 {dimension}
               </th>
               {/* Muted, and the ink on the read row's band (muted on the band is under 4.5:1 in dark), as in the numbers. */}

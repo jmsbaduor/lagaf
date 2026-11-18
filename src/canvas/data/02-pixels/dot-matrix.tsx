@@ -1,10 +1,9 @@
 import { useId, useState } from "react"
 
-import { countAt, CountUp, delay, Frame, Header, TOP, useReading } from "@/canvas/kit"
+import { Cell, Choice, Choices, countAt, CountUp, Frame, Header, note, TOP, useReading } from "@/canvas/kit"
 import { cn } from "@/lib/utils"
 
 import { DOTS, litDots, TEAM_SHARES } from "../facts"
-import { Choice, Choices, px } from "./parts"
 
 const STATS = [
   {
@@ -84,7 +83,8 @@ export default function DotMatrix() {
                   draft docs" (226 would keep "to" up), "allow publishing / without human review" (218 fits). */}
               <span
                 className={cn(
-                  "mt-3 block w-[220px] text-[22px] leading-7 tracking-[-0.01em] transition-colors",
+                  note,
+                  "mt-3 block w-[220px] transition-colors",
                   on ? "text-foreground" : "text-muted-foreground"
                 )}
               >
@@ -102,17 +102,16 @@ export default function DotMatrix() {
         style={{ top: TOP, width: GRID_W, gridTemplateColumns: `repeat(${COLS}, ${DOT}px)`, gap: PITCH - DOT }}
       >
         {Array.from({ length: DOTS }, (_, i) => (
-          // An empty dot with its fill fading in on top; the fill's colour is what a pick changes.
-          <span key={i} className="rounded-full bg-viz-track" style={{ width: DOT, height: DOT }}>
-            <span
-              className="px-cell viz-fade block size-full rounded-full"
-              style={{
-                ...px(i < lit ? stat.color : "var(--viz-track)"),
-                ...delay(FILL_AT + countAt(i, FIRST_LIT, COUNT), FILL),
-                transitionDelay: `${i * 2}ms`,
-              }}
-            />
-          </span>
+          // The fill's colour is what a pick changes.
+          <Cell
+            key={i}
+            color={i < lit ? stat.color : "var(--viz-track)"}
+            at={FILL_AT + countAt(i, FIRST_LIT, COUNT)}
+            duration={FILL}
+            ripple={i * 2}
+            className="rounded-full"
+            style={{ width: DOT, height: DOT }}
+          />
         ))}
       </div>
     </Frame>

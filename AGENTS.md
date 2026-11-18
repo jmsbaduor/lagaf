@@ -11,4 +11,4 @@ Themable, animated infographic charts, built with ui-sdk.
 - Charts use only the tokens in `src/styles/global.css` (surfaces and ink, and the chart roles in section 6). No raw hex values.
 - Icons are Central Icons through `src/components/Icon.tsx`; add a name there before using it.
 - Use Node 24 (`.node-version`) and pnpm. Installing needs `CENTRAL_LICENSE_KEY` in `.env`.
-- Gate: `pnpm typecheck && pnpm lint && pnpm build`, then `node scripts/contrast.mjs` with the dev server running.
+- Gate: `pnpm check`, then `pnpm check:browser`. New charts follow `docs/charts.md` (the `new-chart` skill).

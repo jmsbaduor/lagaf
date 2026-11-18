@@ -1,10 +1,9 @@
 import type { ComponentProps } from "react"
 
-import { CountUp, delay, Frame, Header, Label, TOP, useReading } from "@/canvas/kit"
+import { CountUp, delay, Fill, focusRing, Frame, Header, Label, TOP, useReading } from "@/canvas/kit"
 import { cn } from "@/lib/utils"
 
 import { LAG, LAG_PX } from "../facts"
-import { focusRing } from "./parts"
 
 const STYLE = [
   { fill: "bg-viz-lead", ink: "text-viz-lead-ink" },
@@ -20,7 +19,7 @@ const GROW = 600
 const AT = [100, 180, 240]
 
 export default function UpdateLag() {
-  const { active, bind } = useReading<number>()
+  const { active, bind, dim } = useReading<number>()
   const on = active === null ? null : LAG[active]
 
   return (
@@ -43,7 +42,7 @@ export default function UpdateLag() {
             {...d}
             {...STYLE[i]}
             at={AT[i]}
-            dim={active !== null && active !== i}
+            dim={dim(i)}
             tabIndex={0}
             {...bind(i)}
           />
@@ -70,12 +69,9 @@ function Column({
     <li aria-label={`${label}: ${value}%`} className={cn("flex flex-col gap-4", focusRing)} {...props}>
       <Label>{label}</Label>
       <div aria-hidden="true" className="viz-hatch relative" style={{ height: COLUMN_H }}>
-        <div
-          className="viz-grow-y absolute inset-x-0 bottom-0 bg-background"
-          style={{ height: value * LAG_PX, ...delay(at, GROW) }}
-        >
+        <Fill axis="y" size={value * LAG_PX} at={at} duration={GROW} className="bg-background">
           <div className={cn("size-full transition-opacity", fill, dim && "opacity-30")} />
-        </div>
+        </Fill>
         {/* Fades in once its bar is behind it, so the ink never sits on the hatch. Its indent takes up the digits'
             side bearing and its box sits 12 up, so the ink is about 24 from the bar's left and bottom alike. */}
         <p

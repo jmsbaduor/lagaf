@@ -1,4 +1,4 @@
-import { delay, Frame, Header, Label, TOP } from "@/canvas/kit"
+import { delay, Fill, Frame, Header, Label, TOP } from "@/canvas/kit"
 import type { Knobs, Values } from "@/components/stage"
 import { cn } from "@/lib/utils"
 
@@ -64,7 +64,7 @@ export default function TokenBar({ format = "Markdown" }: Partial<Values<typeof 
         <Label className="mt-6">{md ? "Markdown + llms.txt" : "HTML"} · token usage</Label>
         {/* The whole's edge is a 1px inset ring, so it takes no room and the fill covers it. */}
         <div className="viz-hatch relative mt-4 ring-1 ring-viz-label/70 ring-inset" style={{ height: BAR_H }}>
-          <div className="viz-grow-x absolute inset-0" style={delay(FILL_AT, FILL)}>
+          <Fill at={FILL_AT} duration={FILL} className="inset-0">
             <div
               className={cn(
                 "h-full origin-left transition-[scale,background-color]",
@@ -73,7 +73,7 @@ export default function TokenBar({ format = "Markdown" }: Partial<Values<typeof 
               )}
               style={{ scale: md ? `${TOKEN_USED / TOKEN_W} 1` : "1 1" }}
             />
-          </div>
+          </Fill>
         </div>
         <Label className={cn("mt-4 text-right transition-opacity", answer, !md && "opacity-0")}>
           HTML · token usage

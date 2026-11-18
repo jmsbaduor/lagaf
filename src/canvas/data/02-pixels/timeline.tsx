@@ -1,10 +1,10 @@
-import { useId, type CSSProperties } from "react"
+import { useId } from "react"
 
-import { delay, Frame, Header, TOP, useReading } from "@/canvas/kit"
+import { Choice, Choices, delay, Frame, Header, note, smallLabelText, TOP, useReading, wipe } from "@/canvas/kit"
 import { cn } from "@/lib/utils"
 
 import { FIELD, FIELD_COLS, FIELD_ROWS, STAGE_X, stageCol } from "../facts"
-import { Choice, Choices } from "./parts"
+import "./pixels.css"
 
 const STAGES = [
   { when: "Week 1", name: "Pilot", note: "One docs site, agents set it up." },
@@ -30,7 +30,7 @@ const reached = (x: number) => SWEEP_AT + (stageCol(x) + 1) * STEP
 
 export default function Timeline() {
   const name = useId()
-  const { active, bind } = useReading<string>()
+  const { active, bind, dim } = useReading<string>()
   const stage = STAGES.find((s) => s.name === active)
 
   return (
@@ -45,19 +45,12 @@ export default function Timeline() {
       <div
         aria-hidden="true"
         className="viz-wipe absolute inset-x-0"
-        style={
-          {
-            top: TOP + FIELD_TOP,
-            height: FIELD_H,
-            ...delay(SWEEP_AT, FIELD_COLS * STEP),
-            "--viz-steps": FIELD_COLS,
-          } as CSSProperties
-        }
+        style={{ top: TOP + FIELD_TOP, height: FIELD_H, ...wipe(SWEEP_AT, FIELD_COLS * STEP, FIELD_COLS) }}
       >
         {FIELD.map((cells, i) => (
           <div
             key={i}
-            className={cn("absolute inset-0 transition-opacity", active && active !== STAGES[i].name && "opacity-20")}
+            className={cn("absolute inset-0 transition-opacity", dim(STAGES[i].name) && "opacity-20")}
           >
             {cells.map((c) => (
               <span
@@ -75,7 +68,6 @@ export default function Timeline() {
           const next = STAGES[i + 1]?.x ?? 1392
           const at = reached(s.x)
           const on = active === s.name
-          const dim = active !== null && !on
           return (
             <Choice
               key={s.name}
@@ -85,18 +77,18 @@ export default function Timeline() {
               style={{ top: TOP, left: s.x - 12, width: next - s.x, height: STAGE_H, ...delay(at) }}
               {...bind(s.name)}
             >
-              <span className="absolute top-0 left-3 font-mono text-[12px] leading-4 font-medium text-muted-foreground uppercase">
+              <span className={cn(smallLabelText, "absolute top-0 left-3 text-muted-foreground")}>
                 {s.when}
               </span>
               <span
                 className={cn(
                   "absolute top-6 left-3 text-[32px] leading-10 tracking-[-0.015em] whitespace-nowrap transition-colors",
-                  dim && "text-muted-foreground"
+                  dim(s.name) && "text-muted-foreground"
                 )}
               >
                 {s.name}
               </span>
-              <span aria-hidden="true" className={cn("absolute top-20 left-3 transition-opacity", dim && "opacity-35")}>
+              <span aria-hidden="true" className={cn("absolute top-20 left-3 transition-opacity", dim(s.name) && "opacity-35")}>
                 <span
                   className={cn(
                     "viz-grow-y absolute top-2 left-2 w-1 transition-colors",
@@ -111,7 +103,8 @@ export default function Timeline() {
               {/* Muted, and the ink while its stage is read, as the numbers' notes do. */}
               <span
                 className={cn(
-                  "absolute left-3 w-[288px] text-[22px] leading-7 tracking-[-0.01em] text-pretty transition-colors",
+                  note,
+                  "absolute left-3 w-[288px] text-pretty transition-colors",
                   on ? "text-foreground" : "text-muted-foreground"
                 )}
                 style={{ top: NOTE_TOP }}

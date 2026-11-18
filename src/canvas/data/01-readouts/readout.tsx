@@ -1,11 +1,10 @@
 import type { ReactNode } from "react"
 
-import { CountUp, delay, Frame, Header, Label, Tag, TOP } from "@/canvas/kit"
+import { CountUp, Frame, Header, inkEnd, Label, note, Panel, panelNumber, Rule, TOP } from "@/canvas/kit"
 import { Icon } from "@/components/Icon"
 import { cn } from "@/lib/utils"
 
 import { TRAFFIC } from "../facts"
-import { inkEnd, note } from "./parts"
 
 // Crosshair: two vertical and two horizontal hairlines frame the panel (the right half of the data area) and run on
 // to the screen's edges. They are structure, so they don't move.
@@ -43,11 +42,11 @@ export default function Readout() {
         />
       ))}
 
-      <div
-        className="absolute flex flex-col bg-viz-panel p-6 text-viz-panel-ink"
+      <Panel
+        tag="Agent traffic"
+        className="absolute"
         style={{ left: X[0], top: Y[0], width: X[1] - X[0], height: Y[1] - Y[0] }}
       >
-        <Tag className="bg-viz-lead text-viz-lead-ink">Agent traffic</Tag>
 
         <dl className="mt-auto flex flex-col">
           <Metric icon="arrow-up-right" label={agentShare.note} at={AT[0]}>
@@ -76,7 +75,7 @@ export default function Readout() {
           <Label className="text-center text-current">Q2 2026</Label>
           <Label className="text-right text-current">09:11</Label>
         </div>
-      </div>
+      </Panel>
     </Frame>
   )
 }
@@ -102,23 +101,15 @@ function Metric({
       <dt className="flex">
         <Icon name={icon} size={40} />
         {/* The left column, 72 to 696. On a 32px line its last baseline meets the number's, with its box on the grid. */}
-        <span className={cn(note, "absolute bottom-5 left-[-672px] w-[624px] leading-8 text-foreground")}>
+        <span className={cn(note, "absolute bottom-5 left-[-672px] w-[624px] leading-8 font-medium text-foreground")}>
           {label[0]}
           <br />
           {label[1]}
         </span>
       </dt>
-      <dd className="flex-1 text-right font-mono text-[102px] leading-[104px] tracking-[-0.02em]">{children}</dd>
-      <span
-        aria-hidden="true"
-        className="viz-grow-x absolute bottom-0 left-[-672px] h-px w-[648px] bg-border"
-        style={delay(at, COUNT)}
-      />
-      <span
-        aria-hidden="true"
-        className="viz-grow-x absolute inset-x-0 bottom-0 h-px bg-current"
-        style={delay(at, COUNT)}
-      />
+      <dd className={cn(panelNumber, "flex-1")}>{children}</dd>
+      <Rule at={at} duration={COUNT} className="left-[-672px] w-[648px]" />
+      <Rule at={at} duration={COUNT} className="bg-current" />
     </div>
   )
 }

@@ -13,7 +13,9 @@
     "astro": "astro",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx,astro}\"",
-    "typecheck": "astro check"
+    "typecheck": "astro check",
+    "check": "astro check && eslint . && astro build && node src/canvas/data/facts.check.mjs",
+    "check:browser": "node scripts/check-browser.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^7",
