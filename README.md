@@ -2,7 +2,20 @@
 
 Themable, animated infographic charts. Each chart fills the screen; small floating controls sit in the corners.
 
-Built with [ui-sdk](https://github.com/vercel-labs/ui) (Vercel Labs) for every control, on [frantic](../frantic)'s design system, with Central Icons and Geist.
+Built with [ui-sdk](https://github.com/vercel-labs/ui) (Vercel Labs) for every control, with Central Icons and Geist. Live at https://lagaf.fly.dev.
+
+## What it's for
+
+Chart slides that are meant to be looked at:
+
+- **Office TV screens and metrics walls.** One chart a screen, readable from across the room, cycling with the arrow keys. `?clean` hides the controls.
+- **Metrics reviews and data stories.** Each chart makes one point, in a title and one sentence, with the numbers drawn exactly.
+- **Your brand.** Pick any accent and every chart re-skins, in light and dark, with every colour pair passing WCAG.
+
+Bring your own data, either way you like:
+
+- **Prompt an AI agent with your data points.** The repo ships a `new-chart` skill (`.claude/skills/new-chart/`) that turns "a chart of X" plus your numbers into a chart page that follows the system, then checks it.
+- **Connect your backend.** Charts read their numbers from one place (`src/canvas/data/facts.ts`); point that at your API to keep the slides live.
 
 ## Run it
 
