@@ -35,7 +35,6 @@ Add `?clean` to a URL to hide the controls, or `?bare` to show the chart alone a
 - **Charts** live in `src/canvas/data/<NN>-<row>/<slug>.tsx` and show at `/<slug>`. Each is drawn on a 1440 by 900 area and scaled to the screen. A chart can export `knobs`, which appear in the bottom-left bar.
 - **Colour** comes from tokens only (`bg-viz-lead`, `text-viz-label` and so on), derived from the accent, so every chart re-skins with it.
 - **Brand exploration** lives in `src/canvas/brand/` and shows at `/brand/<slug>`.
-- **Decisions** are recorded in [docs/design/decisions.md](docs/design/decisions.md).
 - **New charts** start from `src/canvas/data/_template/` and follow [docs/charts.md](docs/charts.md).
 
 ## Check
