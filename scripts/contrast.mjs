@@ -20,6 +20,7 @@ const PAIRS = [
   ["Text on orange", "--viz-alert-ink", "--viz-alert", 4.5],
   ["Lead marks on the page", "--viz-lead", "--viz-paper", 3],
   ["Compared series on the page", "--viz-contrast", "--viz-paper", 3],
+  ["Large numbers on the compared series", "--viz-paper", "--viz-contrast", 3],
   ["Orange marks on the page", "--viz-alert", "--viz-paper", 3],
   ["Yellow mark edges on the page", "--viz-warn-edge", "--viz-paper", 3],
 ]

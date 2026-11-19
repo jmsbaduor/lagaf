@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from '@ui-sdk/react/button'
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from '@ui-sdk/react/collapsible'
 import {
-  Menu, MenuContent, MenuGroupLabel, MenuItem, MenuItemIndicator, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger,
+  Menu, MenuContent, MenuGroupLabel, MenuItemIndicator, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger,
 } from '@ui-sdk/react/menu'
 import { SegmentedControl, SegmentedControlIndicator, SegmentedControlItem } from '@ui-sdk/react/segmented-control'
 import {
@@ -198,10 +198,9 @@ export function ChartStage({ set: name = 'data', initial }: { set?: SetName; ini
   )
 }
 
-/** Top left: every frame of the set in a menu, and a way to the other set. */
+/** Top left: every frame of the set in a menu. */
 function ChartNav({ set, chart, index, onGo }: { set: FrameSet; chart: Chart; index: number; onGo: (c: Chart) => void }) {
   const { items: charts, rows } = set
-  const other = set.name === 'data' ? sets.brand : sets.data
   return (
     <nav aria-label="Charts" data-stage-chrome="" className="fixed inset-s-4 top-4 z-50 flex items-center gap-2">
       <Button render={<a href={REPO} />} aria-label="lagaf on GitHub" title="lagaf on GitHub">
@@ -252,15 +251,6 @@ function ChartNav({ set, chart, index, onGo }: { set: FrameSet; chart: Chart; in
                 ))}
             </MenuRadioGroup>
           ))}
-          {other.items.length > 0 && (
-            <>
-              <MenuSeparator className="col-span-full" />
-              {/* Text in line with the chart names above it, past their check column. */}
-              <MenuItem className="col-span-full ps-8" onSelect={() => location.assign(`${other.base}/${other.items[0].slug}`)}>
-                {other.title}
-              </MenuItem>
-            </>
-          )}
         </MenuContent>
       </Menu>
     </nav>

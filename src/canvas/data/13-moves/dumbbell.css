@@ -1,0 +1,15 @@
+/*
+ * The dumbbell's own motion, on the kit's curve and timing variables (kit.css), so the frame can finish it and
+ * reduced motion lands it at once.
+ */
+
+/* May's dot leaving December's: --travel is the gap between them. It runs on the bar's timing, so it rides the
+   bar's growing end. */
+@keyframes dumbbell-travel {
+  from {
+    translate: calc(-1 * var(--travel, 0px)) 0;
+  }
+}
+.dumbbell-travel {
+  animation: dumbbell-travel var(--viz-dur, 600ms) var(--viz-ease) var(--viz-delay, 0ms) both;
+}
