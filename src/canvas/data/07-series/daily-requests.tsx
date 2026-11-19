@@ -9,7 +9,7 @@ import { AXIS, COUNT_TICKS, DAYS, GAP, millions, REQUEST_PX, SHARE_PX, SHARE_TIC
 // Count shows how many requests the cache took; Share shows what part of each day it took, so the climb to 85% reads
 // against one height. Both scales put their ticks on the same lines, so only the labels change.
 export const knobs = {
-  measure: { type: "choice", label: "Measure", value: "Count", options: ["Count", "Share"] },
+  measure: { type: "choice", label: "Measure", value: "Share", options: ["Share", "Count"] },
 } as const satisfies Knobs
 
 // 14 columns of 60, 32 apart (a 92 pitch), from the 32px tick column and 8 to 1368, so every edge is a whole 4.
@@ -26,7 +26,7 @@ const colX = (i: number) => PLOT_X + i * PITCH
 const GROW = 500
 const STAGGER = 30
 
-export default function DailyRequests({ measure = "Count" }: Partial<Values<typeof knobs>>) {
+export default function DailyRequests({ measure = "Share" }: Partial<Values<typeof knobs>>) {
   const name = useId()
   const share = measure === "Share"
   const { active, bind, dim } = useReading<number>()
