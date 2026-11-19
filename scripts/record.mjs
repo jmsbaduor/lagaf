@@ -1,7 +1,7 @@
 // Records the showcase video: every chart in focused mode (?clean) and dark, at 3840 by 2160 and 60 fps, with
 // colour changes and hovered readings.
 //   node scripts/record.mjs [out.mp4]          (BASE defaults to http://localhost:4322; FRAMES=n stops early;
-//                                               FROM=<slug> starts at that chart and runs to the end)
+//                                               FROM=<slug> starts at that chart in the plan and runs to the end)
 // Frame-exact: the page's clock is Playwright's fake clock, and every CSS animation and transition is paused and set
 // to the clock's time each frame, so the video is smooth however long each 4K capture takes. Frames go straight into
 // ffmpeg (H.264 High, CRF 12), never to disk.
@@ -18,52 +18,53 @@ const H = 720
 const SCALE = 3 // 1280 by 720 at 3x: 3840 by 2160, text at triple density
 const LIMIT = Number(process.env.FRAMES ?? Infinity)
 
-// The run, in chart order (the stage's ← → order). Seconds of hold, then optional hovers over n readable items,
-// and colour steps (↓ through the accents) before moving on.
+// The run, mixed so neighbours differ in kind and the newer rows sit among the first ones; the stage jumps between
+// charts through its history (popstate), as Back and Forward do. Seconds of hold, then optional hovers over n
+// readable items, and colour steps (↓ through the accents) before moving on.
 const PLAN = {
   readout: { hold: 1.7 },
-  dashboard: { hold: 1.5 },
-  numbers: { hold: 1.1, hover: 4 },
-  comparison: { hold: 1.5 },
-  waffle: { hold: 1.3, hover: 2 },
-  "dot-matrix": { hold: 1.5 },
-  "who-reads": { hold: 1.1, hover: 4 },
-  timeline: { hold: 1.4, colours: 3 }, // lumina to orange, a step at a time
-  "update-lag": { hold: 1.2, hover: 3 },
-  "token-bar": { hold: 1.5 },
-  growth: { hold: 1.2, hover: 2 },
-  "eval-rows": { hold: 1.4, colours: 5 }, // orange to teal
-  "agent-share": { hold: 1.1, hover: 5 },
-  crossover: { hold: 1.5 },
-  "answer-time": { hold: 1.4 },
-  formats: { hold: 1.2, hover: 3, colours: 5 }, // teal to violet
-  sources: { hold: 1.5 },
-  "team-review": { hold: 1.4 },
-  "eval-sites": { hold: 1.2, hover: 4 },
-  rhythm: { hold: 1.2, hover: 4 },
-  "answer-spread": { hold: 1.3, colours: 4 }, // violet to rose
-  trajectory: { hold: 1.2, hover: 5 },
-  "daily-requests": { hold: 1.5 },
-  milestones: { hold: 1.6 },
-  leaderboard: { hold: 1.5 },
-  "all-readers": { hold: 1.1, hover: 4 },
-  journeys: { hold: 1.3, hover: 4 },
-  gauge: { hold: 1.5, colours: 1 }, // rose wraps round to lumina
-  "time-saved": { hold: 1.6 },
   bridge: { hold: 1.5, hover: 4 },
-  shift: { hold: 1.4 },
-  funnel: { hold: 1.2, hover: 4, colours: 3 }, // lumina to orange
-  freshness: { hold: 1.6 },
+  waffle: { hold: 1.3, hover: 2 },
   ribbons: { hold: 1.3, hover: 3 },
-  rings: { hold: 1.4, colours: 3 }, // orange to green
-  "icon-count": { hold: 1.5 },
-  ranges: { hold: 1.2, hover: 4 },
-  dumbbell: { hold: 1.4, colours: 3 }, // green to cyan
+  trajectory: { hold: 1.2, hover: 5 },
+  funnel: { hold: 1.2, hover: 4, colours: 3 }, // lumina to orange
+  "dot-matrix": { hold: 1.5 },
+  rings: { hold: 1.4 },
+  crossover: { hold: 1.5 },
+  freshness: { hold: 1.6 },
+  numbers: { hold: 1.1, hover: 4 },
   bump: { hold: 1.3, hover: 3 },
-  calendar: { hold: 1.5, colours: 4 }, // cyan to violet
+  "token-bar": { hold: 1.5 },
+  calendar: { hold: 1.5 },
+  formats: { hold: 1.2, hover: 3, colours: 5 }, // orange to teal
+  dumbbell: { hold: 1.4 },
+  "who-reads": { hold: 1.1, hover: 4 },
+  shift: { hold: 1.4 },
+  leaderboard: { hold: 1.5 },
   butterfly: { hold: 1.2, hover: 4 },
+  "eval-rows": { hold: 1.4, colours: 5 }, // teal to violet
+  "icon-count": { hold: 1.5 },
+  rhythm: { hold: 1.2, hover: 4 },
+  ranges: { hold: 1.2, hover: 4 },
+  "agent-share": { hold: 1.1, hover: 5 },
   bullets: { hold: 1.4, hover: 4, colours: 4 }, // violet to rose
-  sparklines: { hold: 2.2 },
+  journeys: { hold: 1.3, hover: 4 },
+  dashboard: { hold: 1.5 },
+  growth: { hold: 1.2, hover: 2 },
+  sparklines: { hold: 1.6 },
+  timeline: { hold: 1.4 },
+  "answer-spread": { hold: 1.3 },
+  gauge: { hold: 1.5, colours: 1 }, // rose wraps round to lumina
+  comparison: { hold: 1.5 },
+  "daily-requests": { hold: 1.5 },
+  "update-lag": { hold: 1.2, hover: 3 },
+  "eval-sites": { hold: 1.2, hover: 4 },
+  sources: { hold: 1.5 },
+  milestones: { hold: 1.6 },
+  "all-readers": { hold: 1.1, hover: 4 },
+  "team-review": { hold: 1.4 },
+  "answer-time": { hold: 1.4 },
+  "time-saved": { hold: 2.2 },
 }
 const ALL = Object.keys(PLAN)
 const slugs = ALL.slice(Math.max(0, ALL.indexOf(process.env.FROM ?? ALL[0])))
@@ -183,7 +184,11 @@ for (const [i, slug] of slugs.entries()) {
   if (step.hover) await hover(step.hover)
   for (let c = 0; c < (step.colours ?? 0); c++) await key("ArrowDown", 0.16)
   if (step.colours) await hold(0.35)
-  if (i < slugs.length - 1) await key("ArrowRight", 0)
+  if (i < slugs.length - 1)
+    await page.evaluate((next) => {
+      history.pushState(null, "", `/${next}${location.search}`)
+      dispatchEvent(new PopStateEvent("popstate"))
+    }, slugs[i + 1])
   if (frames >= LIMIT) break
 }
 await hold(0.5)
