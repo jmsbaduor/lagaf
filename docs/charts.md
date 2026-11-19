@@ -103,18 +103,19 @@ What is drawn equals the numbers. Every number a chart draws lives in `src/canva
 | --- | --- | --- |
 | `Frame`, `Header`, `TOP` | Every chart | All |
 | `useReading`, `focusRing` | Hover and focus readings | All that read |
-| `row`, `band` | A ruled row that tints while read | Numbers, comparison |
-| `Choices`, `Choice` | Items that are radios | Waffle, dot matrix, who reads, timeline, eval sites, rhythm, answer spread |
-| `Rule` | A hairline that draws from the left | Readout, dashboard, numbers, comparison |
-| `Fill` | A bar growing from its baseline | Update lag, token bar, growth, team review, answer spread |
+| `row`, `band` | A ruled row that tints while read | Numbers, comparison, formats, all readers, leaderboard, time saved |
+| `Choices`, `Choice` | Items that are radios | Waffle, dot matrix, who reads, timeline, eval sites, rhythm, answer spread, trajectory, daily requests |
+| `Rule` | A hairline that draws from the left | Readout, dashboard, numbers, comparison, all readers, leaderboard, gauge |
+| `Fill` | A bar growing from its baseline | Update lag, token bar, growth, team review, answer spread, trajectory, daily requests, all readers, leaderboard |
 | `Cell` | A pixel or dot that fills | Waffle, dot matrix (eval sites uses its `px-cell` fade) |
-| `Key` | A legend entry | Waffle, who reads, crossover, formats, sources |
+| `Key` | A legend entry | Waffle, who reads, crossover, formats, sources, trajectory, daily requests, time saved |
 | `Panel` | A readout panel with its tag, soft or solid | Readout, dashboard |
 | `CountUp`, `countAt`, `delay`, `wipe` | Timing | Most |
-| `YAxis`, `XAxis`, `tickText` | A plot's axes: names, ticks and gridlines | Agent share, crossover, answer time, eval sites, rhythm, answer spread |
-| `Series`, `Point` | Lines and points in frame px, drawn in left to right | Agent share, crossover, answer time |
+| `YAxis`, `XAxis`, `tickText` | A plot's axes: names, ticks and gridlines | Agent share, crossover, answer time, eval sites, rhythm, answer spread, trajectory, daily requests, milestones (`XAxis` also journeys) |
+| `Series`, `Point` | Lines and points in frame px, drawn in left to right | Agent share, crossover, answer time, milestones |
+| `viz-sweep` | A ring or dial's arcs sweeping in | Formats, gauge, time saved |
 
-Add a part to the kit only when two charts use it, with the fewest props that cover both. A row's own layout (row 04's month columns, `Months`, `Line`, `EndLabel`) stays in its `parts.tsx`; the formats ring's sweep stays in `05-parts/parts.css` until a second chart sweeps.
+Add a part to the kit only when two charts use it, with the fewest props that cover both. A row's own layout (row 04's month columns, `Months`, `Line`, `EndLabel`) stays in its `parts.tsx`.
 
 ## Checks
 
