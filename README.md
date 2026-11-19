@@ -80,8 +80,21 @@ Records every chart in focused mode and dark, with a few colour changes and read
 
 ## Deploy
 
+It's a static site, so it runs anywhere. `pnpm build` writes plain HTML, CSS and JavaScript to `dist/`, with no server to run. The one thing every host needs is `CENTRAL_LICENSE_KEY` as a build environment variable, since Central Icons checks its licence on install.
+
+- **A static host** (Vercel, Netlify, Cloudflare Pages, GitHub Pages and the like): Node 24, build command `pnpm build`, output directory `dist`.
+- **Any container host:** the `Dockerfile` builds the site and serves `dist/` with Caddy on port 8080.
+
+```bash
+docker build --secret id=CENTRAL_LICENSE_KEY,env=CENTRAL_LICENSE_KEY -t lagaf .
+```
+
+```bash
+docker run -p 8080:8080 lagaf
+```
+
+The demo at https://lagaf.fly.dev runs on Fly, from the same Dockerfile:
+
 ```bash
 fly deploy --build-secret CENTRAL_LICENSE_KEY="$CENTRAL_LICENSE_KEY"
 ```
-
-Live at https://lagaf.fly.dev.

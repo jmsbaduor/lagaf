@@ -2,7 +2,8 @@ FROM node:24-alpine AS build
 WORKDIR /app
 RUN npm install -g pnpm@11.20.0
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-# Central Icons checks its licence on install (as in frantic). Deploy with:
+# Central Icons checks its licence on install, so the key comes in as a build secret:
+#   docker build --secret id=CENTRAL_LICENSE_KEY,env=CENTRAL_LICENSE_KEY -t lagaf .
 #   fly deploy --build-secret CENTRAL_LICENSE_KEY="$CENTRAL_LICENSE_KEY"
 RUN --mount=type=secret,id=CENTRAL_LICENSE_KEY \
     CENTRAL_LICENSE_KEY="$(cat /run/secrets/CENTRAL_LICENSE_KEY)" pnpm install --frozen-lockfile
