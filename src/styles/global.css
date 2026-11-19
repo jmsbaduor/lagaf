@@ -1083,23 +1083,23 @@ html:has([data-chart-stage]) { overflow: hidden; }
     calc(50% - 30px) calc(50% - 30px), calc(50% - 30px) calc(50% - 30px);
   animation: intro-grid 600ms var(--viz-ease) both;
 }
-/* A key: a face lit a little from above, its hairline, and 4px of side below it, darker than the face in either theme,
-   over a soft shadow. Pressed, the face sinks 3px onto its side. Each key presses once, at --press. */
+/* A key: a face lit a little from above, its hairline, and 3px of side below it, darker than the face in either theme,
+   over a soft shadow. Pressed, the face sinks 2px onto its side. Each key presses once, at --press. */
 .intro-key {
   --side: color-mix(in oklab, var(--color-surface-1), oklch(0 0 0) 30%);
-  display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radius-control);
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-control);
   color: var(--color-fg);
   background: linear-gradient(to bottom, color-mix(in oklab, var(--color-surface-1), oklch(1 0 0) 8%), var(--color-surface-1));
   box-shadow:
     inset 0 0 0 1px var(--color-line),
-    0 4px 0 var(--side),
-    0 4px 0 1px var(--color-line),
-    0 8px 12px -4px oklch(0 0 0 / 0.3);
+    0 3px 0 var(--side),
+    0 3px 0 1px var(--color-line),
+    0 6px 10px -4px oklch(0 0 0 / 0.3);
   animation: intro-press 480ms var(--viz-ease) var(--press, 0ms) both;
 }
 @keyframes intro-press {
   35%, 55% {
-    translate: 0 3px;
+    translate: 0 2px;
     box-shadow:
       inset 0 0 0 1px var(--color-line),
       0 1px 0 var(--side),

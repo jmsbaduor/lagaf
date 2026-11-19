@@ -63,7 +63,7 @@ export function Intro({ leaving, onLeave, onDone }: { leaving: boolean; onLeave:
                 <span className="flex gap-2">
                   {keys.map((name, k) => (
                     <kbd key={name} className="intro-key" style={{ '--press': `${at + 500 + k * 350}ms` } as React.CSSProperties}>
-                      <Icon name={name} size={16} />
+                      <Icon name={name} size={14} />
                       <span className="sr-only">{k > 0 && 'or '}{name.slice(6)}</span>
                     </kbd>
                   ))}
