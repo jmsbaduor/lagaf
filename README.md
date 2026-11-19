@@ -41,7 +41,7 @@ Open http://localhost:4321. You need Node 24 and `CENTRAL_LICENSE_KEY` in `.env`
 | C | Motion: speed and reduced motion |
 | H | Hide the controls |
 
-Add `?clean` to a URL to hide the controls, or `?bare` to show the chart alone at 1:1.
+Add `?clean` to a URL to hide the controls (the chart then fills the screen), or `?bare` to show the chart alone at 1:1.
 
 ## How it's built
 
@@ -65,6 +65,18 @@ node scripts/shoot.mjs /tmp/shots readout waffle
 ```
 
 `check` runs the typecheck, lint, build and facts check. `check:browser` tests every colour pair in every accent and mode against WCAG, and every chart's boxes against the 4px grid; it starts a dev server if none is running. `shoot.mjs` captures charts in light and dark.
+
+## Record
+
+```bash
+pnpm build && pnpm preview --port 4322
+```
+
+```bash
+node scripts/record.mjs
+```
+
+Records every chart in focused mode and dark, with a few colour changes and readings, to `recordings/` as 3840 by 2160 at 60 fps. It steps the page clock frame by frame, so motion is smooth however slow the capture. Needs ffmpeg.
 
 ## Deploy
 

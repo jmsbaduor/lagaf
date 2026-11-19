@@ -108,7 +108,9 @@ export function ChartStage({ set: name = 'data', initial }: { set?: SetName; ini
   const [values, setValues] = useState(() => defaults(chart.knobs))
   const [replay, setReplay] = useState(0)
   const [width, height] = useViewport()
-  const clear = matchMedia('(pointer: coarse)').matches ? 72 : 64
+  // Focused mode (H, or ?clean) hides the bars, so the chart needs no band for them and fills the screen.
+  const { hidden } = useStageState()
+  const clear = hidden ? 0 : matchMedia('(pointer: coarse)').matches ? 72 : 64
   const k = fit(width, height, clear, devicePixelRatio || 1)
   const bare = new URLSearchParams(location.search).has('bare')
   useWholePixels()
