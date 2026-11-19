@@ -42,6 +42,10 @@ Write the chart's `ideas.ts` line first: what it shows and how it is read. If it
 | Flow between steps (Sankey) | `journeys` | `XAxis`, `delay`, `focusRing`, the band paths in `09-flows/data.ts` |
 | One value against a reference on a dial | `gauge` | d3's `arc`, `viz-sweep`, `CountUp`, `Rule` |
 | A value beside a split on a clock face | `time-saved` | d3's `arc`, `viz-sweep`, `Key`, `band` |
+| A start, the steps between and an end (waterfall) | `bridge` | `YAxis`, `XAxis`, `Key`, `CountUp`, a top-origin grow for a fall |
+| Each item's change between two points (slope) | `shift` | `Series`, `Point`, `YAxis`, `countAt`, `spread` in `10-changes/data.ts` for end labels |
+| Stages that narrow, with the drop between (funnel) | `funnel` | `Fill`, `CountUp`, `focusRing`, `viz-hatch` for the drop |
+| The state of many items over time (status grid) | `freshness` | `YAxis` and `XAxis` with `band`, `Choice`, `wipe`, `CountUp`, warn and alert roles |
 
 If no row fits the data, say so and ask before forcing it into the nearest chart. Why: a chart built for another shape misreads the data.
 
@@ -49,7 +53,7 @@ Read that chart's file before writing. Why: its measures already sit on the grid
 
 ## 3. Copy the template
 
-- Row by what the marks are: `01-readouts` numbers, `02-pixels` counted cells, `03-bars` lengths, `04-lines` lines over time, `05-parts` parts of a whole, `06-spreads` spreads (scatters, heatmaps, histograms), `07-series` time with the part that matters called out, `08-ranks` ranked items, `09-flows` flows and dials. Anything else gets a new `NN-<row>/` with the next number and a copy of `_template/ideas.ts`, its `row` set to NN. Why: the registry orders rows by that number.
+- Row by what the marks are: `01-readouts` numbers, `02-pixels` counted cells, `03-bars` lengths, `04-lines` lines over time, `05-parts` parts of a whole, `06-spreads` spreads (scatters, heatmaps, histograms), `07-series` time with the part that matters called out, `08-ranks` ranked items, `09-flows` flows and dials, `10-changes` how a number changed, `11-status` the state of many items. Anything else gets a new `NN-<row>/` with the next number and a copy of `_template/ideas.ts`, its `row` set to NN. Why: the registry orders rows by that number.
 - Copy `_template/chart.tsx` to `<NN-row>/<slug>.tsx`. The slug is the URL: lowercase, hyphens, unique across rows (the registry throws on a duplicate).
 - Add `[slug, idea]` to the row's `ideas.ts`. Why: only listed files show.
 
