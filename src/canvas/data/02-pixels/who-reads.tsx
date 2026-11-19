@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils"
 
 import { agentCols, READER_COLS, READERS } from "../facts"
 
-// Columns of three 12px cells on a 16px pitch, people first, as in the deck. Every bar has the same 50 columns.
+// Columns of three 12px cells on a 16px pitch, people first. Every bar has the same 50 columns.
 // Rows of 108 hold a 44px bar 32 from their top, so bars and names land on the 4px grid; five rows run to 804.
 const ROWS = 3
 const ROW_H = 108

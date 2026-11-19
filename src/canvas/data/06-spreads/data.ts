@@ -1,4 +1,4 @@
-// Row 06's numbers: three spreads behind figures the deck states as one number (the eval's accuracy, May's 62% agent
+// Row 06's numbers: three spreads behind figures rows 01 to 03 state as one number (the eval's accuracy, May's 62% agent
 // share, the 0.8s median answer). Made up to agree with them; data.check.mjs proves it. Node runs this file as is.
 import { DEMO, EVALS, seeded, TRAFFIC } from "../facts.ts"
 

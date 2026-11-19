@@ -15,8 +15,8 @@ import { IconSettingsSliderHor } from 'central-icons/IconSettingsSliderHor'
 import { IconSquarePlaceholder } from 'central-icons/IconSquarePlaceholder'
 import { IconSun } from 'central-icons/IconSun'
 
-// UI icons are Central Icons (round, outlined, 2px radius, 1.5 stroke on a 24 grid), named by what they mean here,
-// as in frantic. Add a name here before using it. Inside a chart, icons are drawn in chart px and zoom with it.
+// UI icons are Central Icons (round, outlined, 2px radius, 1.5 stroke on a 24 grid), named by what they mean here.
+// Add a name here before using it. Inside a chart, icons are drawn in chart px and zoom with it.
 const CENTRAL = {
   replay: IconArrowRotateCounterClockwise,
   sliders: IconSettingsSliderHor,

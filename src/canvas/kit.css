@@ -3,7 +3,7 @@
  * Frame finishes them on a first click or key through root.getAnimations(), and the stage paces them.
  * Per element: style={delay(120, 600)} sets --viz-delay and --viz-dur.
  *
- * One curve, frantic's --ease-out. No springs, no bounce. Only what explains the data moves:
+ * One curve, --viz-ease. No springs, no bounce. Only what explains the data moves:
  * bars and rules grow from their baseline, pixel groups wipe in, supporting text fades. Headers never move.
  */
 :root {

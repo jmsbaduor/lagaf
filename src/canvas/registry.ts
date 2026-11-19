@@ -5,7 +5,7 @@ import type { Knobs } from '@/components/stage'
 /** Each row folder's ideas.ts default export. */
 export type Ideas = { row: number; line: string; frames: [file: string, idea: string][] }
 
-/** A chart file: the frame as its default export, and optional knobs for the stage's bottom bar (frantic's pattern). */
+/** A chart file: the frame as its default export, and optional knobs for the stage's bottom bar. */
 type ChartModule = { default: ComponentType<Record<string, unknown>>; knobs?: Knobs }
 
 export type Row = { number: number; title: string; line: string }
@@ -20,7 +20,7 @@ export type Chart = {
 
 // Row folders: src/canvas/<set>/<NN>-<topic>/ with ideas.ts and one .tsx per frame. Two sets: `data` (the charts,
 // at /<slug>) and `brand` (the brand exploration, at /brand/<slug>), each shown on the same stage.
-// ponytail: eager globs put every frame in one bundle, as frantic does; switch to lazy + use() when load time hurts.
+// Eager globs put every frame in one bundle; switch to lazy + use() when load time hurts.
 const dataIdeas = import.meta.glob<Ideas>('./data/[0-9][0-9]-*/ideas.ts', { eager: true, import: 'default' })
 const dataModules = import.meta.glob<ChartModule>('./data/[0-9][0-9]-*/*.tsx', { eager: true })
 const brandIdeas = import.meta.glob<Ideas>('./brand/[0-9][0-9]-*/ideas.ts', { eager: true, import: 'default' })

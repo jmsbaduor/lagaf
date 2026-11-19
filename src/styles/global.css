@@ -382,7 +382,7 @@
   }
   [data-slot="segmented-control-indicator"] { border: 0; background: var(--color-raised); box-shadow: var(--shadow-control); }
   @variant motion-safe {
-    /* ponytail: left and width, not transform: ui-sdk writes the pill's box as left/top/width/height. One 28px
+    /* Left and width, not transform: ui-sdk writes the pill's box as left/top/width/height. One 28px
        element, so the layout cost is nil. Arrow keys move it at once. */
     [data-slot="segmented-control"]:not(:has(:focus-visible)) > [data-slot="segmented-control-indicator"] {
       transition: left 200ms var(--ease-out), top 200ms var(--ease-out), width 200ms var(--ease-out), height 200ms var(--ease-out);
@@ -808,7 +808,7 @@
    transitions, so a reload with the grid on shows it at once. */
 @property --grid-box { syntax: "<color>"; inherits: true; initial-value: transparent; }
 :root {
-  /* ponytail: an inherited property, so the boxes fade restyles the whole page for ~12 frames; fine for a
+  /* An inherited property, so the boxes fade restyles the whole page for ~12 frames; fine for a
      debug overlay, move it to a class on main if pages get heavy. */
   transition: --grid-box 120ms ease-out;
 }
@@ -826,7 +826,7 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  /* ponytail: fixed sheet, so the origin (and these tiles) is re-set on scroll while the grid is on;
+  /* Fixed sheet, so the origin (and these tiles) is re-set on scroll while the grid is on;
      make it an absolute sheet in document space if scrolling with the grid on ever janks. */
   background:
     linear-gradient(var(--accent-solid), var(--accent-solid)) var(--cx) 0 / 1px 100% no-repeat,
@@ -1000,7 +1000,7 @@ body::before {
 }
 /* Accent-driven roles, re-declared on every [data-accent] like the rest of the ramp. */
 :root, [data-accent] {
-  /* Frantic's accent pair: 700 with white (light), 400 with near-black (dark) reach 4.5:1 for every hue, and
+  /* The accent pair: 700 with white (light), 400 with near-black (dark) reach 4.5:1 for every hue, and
      3:1 on the page. Lumina's green moves one step darker in light (600 to 700) to get there. */
   --viz-lead: var(--accent-solid);
   --viz-lead-ink: var(--accent-on);

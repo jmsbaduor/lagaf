@@ -1,4 +1,4 @@
-// Row 06 draws what its data says, and its data agrees with the deck. Run: node src/canvas/data/06-spreads/data.check.mjs
+// Row 06 draws what its data says, and its data agrees with rows 01 to 03. Run: node src/canvas/data/06-spreads/data.check.mjs
 import assert from "node:assert/strict"
 
 import * as f from "../facts.ts"
