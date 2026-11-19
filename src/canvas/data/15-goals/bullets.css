@@ -1,0 +1,7 @@
+/* Bullets: the three bands are track tones, darkest for behind and palest for ahead, mixed toward the ink and the
+   paper so they follow the mode and the accent. */
+.bullets {
+  --bullets-behind: color-mix(in oklab, var(--viz-track) 82%, var(--viz-ink));
+  --bullets-on-track: var(--viz-track);
+  --bullets-ahead: color-mix(in oklab, var(--viz-track) 50%, var(--viz-paper));
+}

@@ -103,17 +103,17 @@ What is drawn equals the numbers. Every number a chart draws lives in `src/canva
 | --- | --- | --- |
 | `Frame`, `Header`, `TOP` | Every chart | All |
 | `useReading`, `focusRing` | Hover and focus readings | All that read |
-| `row`, `band` | A ruled row that tints while read | Numbers, comparison, formats, all readers, leaderboard, time saved |
-| `Choices`, `Choice` | Items that are radios | Waffle, dot matrix, who reads, timeline, eval sites, rhythm, answer spread, trajectory, daily requests, freshness |
-| `Rule` | A hairline that draws from the left | Readout, dashboard, numbers, comparison, all readers, leaderboard, gauge |
-| `Fill` | A bar growing from its baseline | Update lag, token bar, growth, team review, answer spread, trajectory, daily requests, all readers, leaderboard, funnel |
+| `row`, `band` | A ruled row that tints while read | Numbers, comparison, formats, all readers, leaderboard, time saved, butterfly, bullets |
+| `Choices`, `Choice` | Items that are radios | Waffle, dot matrix, who reads, timeline, eval sites, rhythm, answer spread, trajectory, daily requests, freshness, icon count, calendar |
+| `Rule` | A hairline that draws from the left | Readout, dashboard, numbers, comparison, all readers, leaderboard, gauge, sparklines |
+| `Fill` | A bar growing from its baseline | Update lag, token bar, growth, team review, answer spread, trajectory, daily requests, all readers, leaderboard, funnel, rings, calendar, bullets |
 | `Cell` | A pixel or dot that fills | Waffle, dot matrix (eval sites uses its `px-cell` fade) |
-| `Key` | A legend entry | Waffle, who reads, crossover, formats, sources, trajectory, daily requests, time saved, bridge |
+| `Key` | A legend entry | Waffle, who reads, crossover, formats, sources, trajectory, daily requests, time saved, bridge, ribbons, icon count, ranges, dumbbell, butterfly, bullets |
 | `Panel` | A readout panel with its tag, soft or solid | Readout, dashboard |
 | `CountUp`, `countAt`, `delay`, `wipe` | Timing | Most |
-| `YAxis`, `XAxis`, `tickText` | A plot's axes: names, ticks and gridlines | Agent share, crossover, answer time, eval sites, rhythm, answer spread, trajectory, daily requests, milestones, bridge, freshness, shift (`YAxis` only), journeys (`XAxis` only) |
-| `Series`, `Point` | Lines and points in frame px, drawn in left to right | Agent share, crossover, answer time, milestones, shift |
-| `viz-sweep` | A ring or dial's arcs sweeping in | Formats, gauge, time saved |
+| `YAxis`, `XAxis`, `tickText` | A plot's axes: names, ticks and gridlines | Agent share, crossover, answer time, eval sites, rhythm, answer spread, trajectory, daily requests, milestones, bridge, freshness, ranges, bump, calendar, shift (`YAxis` only), journeys and dumbbell (`XAxis` only) |
+| `Series`, `Point` | Lines and points in frame px, drawn in left to right | Agent share, crossover, answer time, milestones, shift, bump, sparklines |
+| `viz-sweep` | A ring or dial's arcs sweeping in | Formats, gauge, time saved, rings |
 
 Add a part to the kit only when two charts use it, with the fewest props that cover both. A row's own layout (row 04's month columns, `Months`, `Line`, `EndLabel`) stays in its `parts.tsx`.
 

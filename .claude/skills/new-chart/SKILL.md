@@ -46,6 +46,16 @@ Write the chart's `ideas.ts` line first: what it shows and how it is read. If it
 | Each item's change between two points (slope) | `shift` | `Series`, `Point`, `YAxis`, `countAt`, `spread` in `10-changes/data.ts` for end labels |
 | Stages that narrow, with the drop between (funnel) | `funnel` | `Fill`, `CountUp`, `focusRing`, `viz-hatch` for the drop |
 | The state of many items over time (status grid) | `freshness` | `YAxis` and `XAxis` with `band`, `Choice`, `wipe`, `CountUp`, warn and alert roles |
+| A share at two points, joined (ribbons) | `ribbons` | `Key`, `CountUp`, SVG ribbon paths, a share or count knob |
+| Each item's share of its own whole (ring row) | `rings` | d3's `arc`, `viz-sweep`, `CountUp`, `Fill` for the overall share |
+| A count as icons, one per unit (isotype) | `icon-count` | `Choice`, `Key`, `countAt`, `CountUp`, Central Icons as in row 08 |
+| A spread per period with its median (range) | `ranges` | `YAxis`, `XAxis`, `Key`, `CountUp`, spans that grow from the median |
+| Each item at two points on one scale (dumbbell) | `dumbbell` | `XAxis`, `Key`, `CountUp`, a bar that grows from the first dot |
+| Ranks over time (bump) | `bump` | `Series`, `Point`, `YAxis`, `XAxis`, `countAt`, row 08's icons |
+| A value for every day (calendar) | `calendar` | `YAxis` and `XAxis`, `Choice`, `wipe`, `Fill` for weekly totals, a stepped ramp |
+| Two groups back to back by category (butterfly) | `butterfly` | `row`, `band`, `Key`, `CountUp` |
+| Numbers against goals (bullet) | `bullets` | `row`, `band`, `Fill`, `Key`, `CountUp`, band tones and a goal tick |
+| Several numbers, each with its trend (sparkline tiles) | `sparklines` | `Series`, `Point`, `Rule`, `CountUp` |
 
 If no row fits the data, say so and ask before forcing it into the nearest chart. Why: a chart built for another shape misreads the data.
 
@@ -53,7 +63,7 @@ Read that chart's file before writing. Why: its measures already sit on the grid
 
 ## 3. Copy the template
 
-- Row by what the marks are: `01-readouts` numbers, `02-pixels` counted cells, `03-bars` lengths, `04-lines` lines over time, `05-parts` parts of a whole, `06-spreads` spreads (scatters, heatmaps, histograms), `07-series` time with the part that matters called out, `08-ranks` ranked items, `09-flows` flows and dials, `10-changes` how a number changed, `11-status` the state of many items. Anything else gets a new `NN-<row>/` with the next number and a copy of `_template/ideas.ts`, its `row` set to NN. Why: the registry orders rows by that number.
+- Row by what the marks are: `01-readouts` numbers, `02-pixels` counted cells, `03-bars` lengths, `04-lines` lines over time, `05-parts` parts of a whole, `06-spreads` spreads (scatters, heatmaps, histograms), `07-series` time with the part that matters called out, `08-ranks` ranked items, `09-flows` flows and dials, `10-changes` how a number changed, `11-status` the state of many items, `12-shares` shares as ribbons, rings and icons, `13-moves` ranges, pairs and ranks that move, `14-hours` when reading happens, `15-goals` goals and trends. Anything else gets a new `NN-<row>/` with the next number and a copy of `_template/ideas.ts`, its `row` set to NN. Why: the registry orders rows by that number.
 - Copy `_template/chart.tsx` to `<NN-row>/<slug>.tsx`. The slug is the URL: lowercase, hyphens, unique across rows (the registry throws on a duplicate).
 - Add `[slug, idea]` to the row's `ideas.ts`. Why: only listed files show.
 
