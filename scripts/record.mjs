@@ -1,6 +1,7 @@
 // Records the showcase video: every chart in focused mode (?clean) and dark, at 3840 by 2160 and 60 fps, with
 // colour changes and hovered readings.
-//   node scripts/record.mjs [out.mp4]          (BASE defaults to http://localhost:4322; FRAMES=n stops early)
+//   node scripts/record.mjs [out.mp4]          (BASE defaults to http://localhost:4322; FRAMES=n stops early;
+//                                               FROM=<slug> starts at that chart and runs to the end)
 // Frame-exact: the page's clock is Playwright's fake clock, and every CSS animation and transition is paused and set
 // to the clock's time each frame, so the video is smooth however long each 4K capture takes. Frames go straight into
 // ffmpeg (H.264 High, CRF 12), never to disk.
@@ -48,8 +49,24 @@ const PLAN = {
   "all-readers": { hold: 1.1, hover: 4 },
   journeys: { hold: 1.3, hover: 4 },
   gauge: { hold: 1.5, colours: 1 }, // rose wraps round to lumina
-  "time-saved": { hold: 2.2 },
+  "time-saved": { hold: 1.6 },
+  bridge: { hold: 1.5, hover: 4 },
+  shift: { hold: 1.4 },
+  funnel: { hold: 1.2, hover: 4, colours: 3 }, // lumina to orange
+  freshness: { hold: 1.6 },
+  ribbons: { hold: 1.3, hover: 3 },
+  rings: { hold: 1.4, colours: 3 }, // orange to green
+  "icon-count": { hold: 1.5 },
+  ranges: { hold: 1.2, hover: 4 },
+  dumbbell: { hold: 1.4, colours: 3 }, // green to cyan
+  bump: { hold: 1.3, hover: 3 },
+  calendar: { hold: 1.5, colours: 4 }, // cyan to violet
+  butterfly: { hold: 1.2, hover: 4 },
+  bullets: { hold: 1.4, hover: 4, colours: 4 }, // violet to rose
+  sparklines: { hold: 2.2 },
 }
+const ALL = Object.keys(PLAN)
+const slugs = ALL.slice(Math.max(0, ALL.indexOf(process.env.FROM ?? ALL[0])))
 
 mkdirSync(dirname(OUT), { recursive: true })
 const ffmpeg = spawn("ffmpeg", [
@@ -103,7 +120,7 @@ await page.addInitScript(() => {
   }
 })
 await page.clock.install({ time: new Date("2026-05-26T09:11:00") })
-await page.goto(`${BASE}/readout?clean`, { waitUntil: "domcontentloaded" })
+await page.goto(`${BASE}/${slugs[0]}?clean`, { waitUntil: "domcontentloaded" })
 for (let i = 0; i < 100 && !(await page.$("[data-frame]")); i++) await page.clock.runFor(100)
 await page.evaluate(() => document.fonts.ready)
 // Installed, the fake clock still follows real time; paused, it moves only by runFor, one frame at a time.
@@ -160,7 +177,6 @@ async function hover(n) {
 
 // Start the first chart's entrance under the stepped clock.
 await key("r", 0)
-const slugs = Object.keys(PLAN)
 for (const [i, slug] of slugs.entries()) {
   const step = PLAN[slug]
   await hold(step.hold)
