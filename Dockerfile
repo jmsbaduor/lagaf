@@ -10,7 +10,7 @@ RUN --mount=type=secret,id=CENTRAL_LICENSE_KEY \
 COPY . .
 RUN pnpm build
 
-# ponytail: static output served by Caddy (~90 MB image). Switch to @astrojs/node if pages need per-request rendering.
+# Static output served by Caddy (~90 MB image). Switch to @astrojs/node if pages need per-request rendering.
 FROM caddy:2-alpine
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /app/dist /srv

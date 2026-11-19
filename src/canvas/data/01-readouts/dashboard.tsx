@@ -6,7 +6,7 @@ import { TRAFFIC } from "../facts"
 
 const CARDS = [TRAFFIC.agentShare, TRAFFIC.answerTime, TRAFFIC.pageViews]
 
-// The deck's two registers (lime and green panels), named by weight so they hold for any accent. Each swaps the
+// Two registers (lime and green panels), named by weight so they hold for any accent. Each swaps the
 // panel and its tag, so the tag always reads against the panel. The switch is a knob in the stage's bottom bar.
 export const knobs = {
   panel: { type: "choice", label: "Panel", value: "Soft", options: ["Soft", "Solid"] },

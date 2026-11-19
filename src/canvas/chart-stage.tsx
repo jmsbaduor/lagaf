@@ -68,7 +68,7 @@ const BARS = '[data-stage-chrome], [data-stage-controls]'
  * Text is a fraction of a pixel wide, which would put every box after it in a bar between pixels. Round each piece of
  * text in the bars and the Motion panel up to a whole pixel: when it changes, when the panel opens, on resize and once
  * the fonts are in. The menus are set widths in CSS, so their text never moves a box.
- * ponytail: one layout read per change; calc-size(max-content, round(up, size, 1px)) replaces it once every browser has it.
+ * One layout read per change; calc-size(max-content, round(up, size, 1px)) replaces it once every browser has it.
  */
 function useWholePixels() {
   useLayoutEffect(() => {
@@ -322,7 +322,7 @@ const GRIDS = [['off', 'No grid', 'frame'], ['grid', 'Grid', 'grid'], ['boxes', 
 const THEMES = [['light', 'Light', 'sun'], ['dark', 'Dark', 'moon']] as const
 const capital = (word: string) => word[0].toUpperCase() + word.slice(1)
 
-/** Top right: accent colour, the layout grid and light or dark. Frantic's StageControls plus the accent. */
+/** Top right: accent colour, the layout grid and light or dark. */
 function StageControls() {
   const root = document.documentElement
   const [theme, setTheme] = useState<Theme>(() => (root.classList.contains('dark') ? 'dark' : 'light'))
@@ -387,7 +387,7 @@ function StageControls() {
             ))}
           </SelectContent>
         </Select>
-        {/* A phone has no room for both groups beside the chart menu, so they fold into one menu, as in frantic. */}
+        {/* A phone has no room for both groups beside the chart menu, so they fold into one menu. */}
         <Menu>
           <MenuTrigger aria-label="Display" aria-keyshortcuts="G D" title="Display (G D)" className="sm:hidden" render={<Button />}>
             <Icon name="cog" size={16} />
@@ -448,7 +448,7 @@ function OnOff({ label, checked, onChange, disabled }: { label: string; checked:
   )
 }
 
-/** One chart knob as a dial row, from frantic's StageBar. */
+/** One chart knob as a dial row. */
 function KnobRow({ knob, value, onChange }: { knob: Knob; value: KnobValue; onChange: (value: KnobValue) => void }) {
   if (knob.type === 'slider')
     return (

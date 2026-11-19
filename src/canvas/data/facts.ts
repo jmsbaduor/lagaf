@@ -1,13 +1,13 @@
 // The numbers the charts draw, and the rules that turn them into cells, bars and fills, in one place so
 // facts.check.mjs can test that what is drawn matches what is said. Plain TypeScript with no imports: Node runs it.
-// Rows 01 to 03 draw the deck's numbers. Rows 04 onward draw DEMO, a made-up story built to agree with them.
+// Rows 01 to 03 draw the headline numbers. Rows 04 onward draw DEMO, a made-up story built to agree with them.
 
 export const pct = (n: number) => `${Math.round(n)}%`
 export const sec = (n: number) => `${n.toFixed(1)}s`
 
 /**
  * Row 01. Readout, dashboard and numbers repeat these; they read from here so they always agree, words included.
- * A note keeps the deck's line break.
+ * A note keeps its line break.
  */
 export const TRAFFIC = {
   agentShare: { value: 62, format: pct, tag: "Agent share", note: ["Share of docs traffic", "from AI agents"] },
@@ -26,7 +26,7 @@ export const TRAFFIC = {
   },
 }
 
-/** Waffle: 10 by 10, one cell per percent. As in the deck, full columns first, then the rest at the foot of the next. */
+/** Waffle: 10 by 10, one cell per percent. Full columns first, then the rest at the foot of the next. */
 export const MARKDOWN_SHARE = 83
 export const WAFFLE = Array.from({ length: 100 }, (_, i) => {
   const row = Math.floor(i / 10)

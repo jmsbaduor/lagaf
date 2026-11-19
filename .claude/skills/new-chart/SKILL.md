@@ -28,18 +28,32 @@ Write the chart's `ideas.ts` line first: what it shows and how it is read. If it
 | A line over time | `agent-share` | `Series`, `Point`, `YAxis`, `XAxis`; row 04's `Months`, `Line`, `EndLabel` |
 | Two series that cross | `crossover` | as a line over time, with `Key` |
 | A value held for each period (steps) | `answer-time` | row 04's `Line` with `step`, `Series`, `Point` |
-| Parts of a whole, as a ring | `formats` | d3's `arc`, a sweep mask, `Key`, `band`, `CountUp` |
+| Parts of a whole, as a ring | `formats` | d3's `arc`, `viz-sweep`, `Key`, `band`, `CountUp` |
 | Many parts sized by value (treemap) | `sources` | `squarify` in `05-parts/data.ts`, `wipe`, `Key`, `focusRing` |
 | One whole split in segments (100% bar) | `team-review` | `Fill`, `CountUp`, `focusRing` |
 | Each item on two measures (scatter) | `eval-sites` | `YAxis` and `XAxis` with `band`, `Choice`, `px-cell` |
 | A value by two categories (heatmap) | `rhythm` | `YAxis` and `XAxis` with `band`, `Choice`, `wipe`, a stepped ramp |
 | A distribution (histogram) | `answer-spread` | `YAxis`, `XAxis`, `Fill` (y), `Choice` |
+| Columns over time, the part that matters drawn deeper | `trajectory` | `Fill` (y), `YAxis`, `XAxis`, `Choice`, `Key` |
+| Two parts stacked over time | `daily-requests` | `Fill` (y), `YAxis`, `XAxis`, `Choice`, `Key`, a count or share knob |
+| A line with events marked on it | `milestones` | `Series`, `Point`, `YAxis`, `XAxis`, `countAt` |
+| Items ranked, the top few as cards | `leaderboard` | `row`, `band`, `Fill`, `CountUp`, `Rule`, row 08's icons |
+| Items ranked above one bar for their total | `all-readers` | `row`, `band`, `Fill`, `CountUp`, `Rule` |
+| Flow between steps (Sankey) | `journeys` | `XAxis`, `delay`, `focusRing`, the band paths in `09-flows/data.ts` |
+| One value against a reference on a dial | `gauge` | d3's `arc`, `viz-sweep`, `CountUp`, `Rule` |
+| A value beside a split on a clock face | `time-saved` | d3's `arc`, `viz-sweep`, `Key`, `band` |
+| A start, the steps between and an end (waterfall) | `bridge` | `YAxis`, `XAxis`, `Key`, `CountUp`, a top-origin grow for a fall |
+| Each item's change between two points (slope) | `shift` | `Series`, `Point`, `YAxis`, `countAt`, `spread` in `10-changes/data.ts` for end labels |
+| Stages that narrow, with the drop between (funnel) | `funnel` | `Fill`, `CountUp`, `focusRing`, `viz-hatch` for the drop |
+| The state of many items over time (status grid) | `freshness` | `YAxis` and `XAxis` with `band`, `Choice`, `wipe`, `CountUp`, warn and alert roles |
+
+If no row fits the data, say so and ask before forcing it into the nearest chart. Why: a chart built for another shape misreads the data.
 
 Read that chart's file before writing. Why: its measures already sit on the grid and its motion is tuned; reuse them rather than invent new ones. Never add a kit part for one chart. Why: a part earns its place when a second chart needs it.
 
 ## 3. Copy the template
 
-- Row by what the marks are: `01-readouts` numbers, `02-pixels` counted cells, `03-bars` lengths, `04-lines` lines over time, `05-parts` parts of a whole, `06-spreads` spreads (scatters, heatmaps, histograms). Anything else gets a new `NN-<row>/` with the next number and a copy of `_template/ideas.ts`, its `row` set to NN. Why: the registry orders rows by that number.
+- Row by what the marks are: `01-readouts` numbers, `02-pixels` counted cells, `03-bars` lengths, `04-lines` lines over time, `05-parts` parts of a whole, `06-spreads` spreads (scatters, heatmaps, histograms), `07-series` time with the part that matters called out, `08-ranks` ranked items, `09-flows` flows and dials, `10-changes` how a number changed, `11-status` the state of many items. Anything else gets a new `NN-<row>/` with the next number and a copy of `_template/ideas.ts`, its `row` set to NN. Why: the registry orders rows by that number.
 - Copy `_template/chart.tsx` to `<NN-row>/<slug>.tsx`. The slug is the URL: lowercase, hyphens, unique across rows (the registry throws on a duplicate).
 - Add `[slug, idea]` to the row's `ideas.ts`. Why: only listed files show.
 

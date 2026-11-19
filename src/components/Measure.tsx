@@ -8,7 +8,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
    4px grid, and on hover or focus the box's size and its distances to its parent.
    Every number is a getBoundingClientRect reading. Decorative: aria-hidden, pointer-events none, nothing focusable. */
 
-// Self-contained, as in frantic (where it is also inlined as a pre-paint script).
+// Self-contained: it reads the page and depends on nothing else here.
 // Returns the origin box [left, top, width, height] in viewport px, unsnapped.
 function setOrigin() {
   let e = document.querySelector('[data-grid-origin]')
@@ -50,7 +50,7 @@ function measure(detail: boolean): Model | null {
   const ox = Math.round(o[0] * dpr) / dpr
   const oy = Math.round(o[1] * dpr) / dpr
   const boxes: Box[] = []
-  // ponytail: every element is read on every sync; fine for one widget, scope it to the hovered subtree if a page gets heavy.
+  // Every element is read on every sync; fine for one widget, scope it to the hovered subtree if a page gets heavy.
   const scope = detail ? (document.querySelector('[data-stage-frame]') ?? document.querySelector('main')) : null
   for (const el of scope?.querySelectorAll<HTMLElement>('*') ?? []) {
     if (!(el instanceof HTMLElement)) continue // not the insides of an svg
@@ -168,7 +168,7 @@ export default function Measure({ mode }: { mode: 'off' | 'grid' | 'boxes' }) {
     }
   }, [mode])
 
-  // lagaf renders client-only, so frantic's pre-paint origin script isn't needed; the layout effect sets it.
+  // lagaf renders client-only, so no pre-paint origin script is needed; the layout effect sets it.
   if (mode === 'off' || !model) return null
   const detail = mode === 'boxes'
 

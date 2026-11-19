@@ -56,7 +56,7 @@ for (let i = 1; i < 4; i++) {
   assert.ok(depth[i] > depth[i - 1], `stage ${i} is not deeper: ${depth.map((d) => d.toFixed(2))}`)
 }
 
-// DEMO agrees with the deck's numbers.
+// DEMO agrees with the numbers rows 01 to 03 draw.
 const D = f.DEMO
 const last = D.months.length - 1
 assert.equal(D.agents.length, D.months.length)
