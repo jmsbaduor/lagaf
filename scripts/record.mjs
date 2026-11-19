@@ -55,8 +55,12 @@ mkdirSync(dirname(OUT), { recursive: true })
 const ffmpeg = spawn("ffmpeg", [
   "-y", "-loglevel", "error",
   "-f", "image2pipe", "-framerate", String(FPS), "-c:v", "mjpeg", "-i", "pipe:0",
+  // JPEG frames are full range; players expect TV range, so convert and tag it, or the video looks washed out.
+  "-vf", "scale=in_range=pc:out_range=tv,format=yuv420p",
+  "-color_range", "tv", "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709",
   "-c:v", "libx264", "-preset", "slow", "-crf", "12", "-profile:v", "high", "-level:v", "5.2",
-  "-pix_fmt", "yuv420p", "-r", String(FPS), "-movflags", "+faststart", OUT,
+  "-x264-params", "colorprim=bt709:transfer=bt709:colormatrix=bt709:range=tv",
+  "-r", String(FPS), "-movflags", "+faststart", OUT,
 ], { stdio: ["pipe", "inherit", "inherit"] })
 const encoded = new Promise((resolve, reject) => ffmpeg.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg exited ${code}`)))))
 
