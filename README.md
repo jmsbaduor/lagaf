@@ -66,18 +66,6 @@ node scripts/shoot.mjs /tmp/shots readout waffle
 
 `check` runs the typecheck, lint, build and facts check. `check:browser` tests every colour pair in every accent and mode against WCAG, and every chart's boxes against the 4px grid; it starts a dev server if none is running. `shoot.mjs` captures charts in light and dark.
 
-## Record
-
-```bash
-pnpm build && pnpm preview --port 4322
-```
-
-```bash
-node scripts/record.mjs
-```
-
-Records every chart in focused mode and dark, with a few colour changes and readings, to `recordings/` as 3840 by 2160 at 60 fps. It steps the page clock frame by frame, so motion is smooth however slow the capture. Needs ffmpeg.
-
 ## Deploy
 
 It's a static site, so it runs anywhere. `pnpm build` writes plain HTML, CSS and JavaScript to `dist/`, with no server to run. The one thing every host needs is `CENTRAL_LICENSE_KEY` as a build environment variable, since Central Icons checks its licence on install.
