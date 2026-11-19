@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from '@ui-sdk/react/button'
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from '@ui-sdk/react/collapsible'
 import {
@@ -12,6 +12,7 @@ import { Slider, SliderControl, SliderIndicator, SliderThumb, SliderTrack, Slide
 
 import { FRAME_H, FRAME_W } from '@/canvas/kit'
 import { sets, type Chart, type FrameSet, type SetName } from '@/canvas/registry'
+import { Intro, firstVisit } from '@/canvas/intro'
 import { Icon } from '@/components/Icon'
 import Measure from '@/components/Measure'
 import {
@@ -113,6 +114,9 @@ export function ChartStage({ set: name = 'data', initial }: { set?: SetName; ini
   const clear = hidden ? 0 : matchMedia('(pointer: coarse)').matches ? 72 : 64
   const k = fit(width, height, clear, devicePixelRatio || 1)
   const bare = new URLSearchParams(location.search).has('bare')
+  // The chart mounts as the intro's paper starts to fade, so its own entrance plays as the paper clears.
+  const [intro, setIntro] = useState<'on' | 'leaving' | 'off'>(() => (bare || hidden ? 'off' : firstVisit() ? 'on' : 'off'))
+  const leave = useCallback(() => setIntro((now) => (now === 'on' ? 'leaving' : now)), [])
   useWholePixels()
 
   // The chart's px, as the grid and the Boxes readout see them.
@@ -185,15 +189,17 @@ export function ChartStage({ set: name = 'data', initial }: { set?: SetName; ini
         <h1 className="sr-only">{chart.title}</h1>
         <div style={{ zoom: k, width: w, height: h, position: 'relative' }}>
           <div data-grid-origin="" style={{ position: 'absolute', left: x, top: y, width: FRAME_W, height: FRAME_H }}>
-            {live}
+            {intro !== 'on' && live}
           </div>
         </div>
       </main>
+      {intro !== 'off' && <Intro leaving={intro === 'leaving'} onLeave={leave} onDone={() => setIntro('off')} />}
       {/* In reading order, so Tab goes top left, top right, bottom left, bottom right. */}
       <ChartNav set={set} chart={chart} index={index} onGo={go} />
       <StageControls />
       <ChartBar chart={chart} values={values} onChange={(key, v) => setValues((cur) => ({ ...cur, [key]: v }))} onReplay={() => setReplay((n) => n + 1)} />
       <Arrows onStep={step} />
+      <Credit />
     </>
   )
 }
@@ -254,6 +260,18 @@ function ChartNav({ set, chart, index, onGo }: { set: FrameSet; chart: Chart; in
         </MenuContent>
       </Menu>
     </nav>
+  )
+}
+
+/** Bottom centre: who made it. Hidden on a phone, where the two bottom bars take the width. */
+function Credit() {
+  const link = 'text-fg-muted underline decoration-line underline-offset-4 transition-colors hover:text-fg hover:decoration-current'
+  return (
+    <footer data-stage-chrome="" className="fixed inset-x-0 bottom-4 z-40 mx-auto flex h-8 w-fit items-center text-[14px] text-fg-subtle max-md:hidden">
+      <p>
+        Made by <a className={link} href="https://x.com/jmsbaduor">James</a> and <a className={link} href="https://x.com/jnrkay_x">ED</a>
+      </p>
+    </footer>
   )
 }
 

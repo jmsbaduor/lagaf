@@ -1032,6 +1032,85 @@ html:has([data-chart-stage]) { overflow: hidden; }
   overflow: hidden; background: var(--color-canvas);
 }
 
+/* The first visit's intro (src/canvas/intro.tsx): beats in one spot, each rising 8px as it fades in, holding, then
+   fading out; the paper then fades off the chart's own entrance. Reduced motion keeps the fades, drops the rise. */
+@keyframes intro-beat {
+  from { opacity: 0; translate: 0 var(--rise, 8px); }
+  15% { opacity: 1; translate: 0 0; }
+  85% { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes intro-leave { to { opacity: 0; } }
+.intro-beat { animation: intro-beat var(--beat) var(--viz-ease) var(--at) both; }
+.intro-leave { animation: intro-leave 300ms var(--viz-ease) both; }
+/* The logo's cells slide in from their corners (--from, in the mark's 16 units) and meet, then move opposite ways
+   two units, a grid step of 8px, and back: up and down (--v), then left and right (--h). */
+@keyframes intro-cell { from { opacity: 0; translate: var(--from); } }
+@keyframes intro-shuffle {
+  0%, 45%, 90%, 100% { translate: 0 0; }
+  22% { translate: var(--v); }
+  68% { translate: var(--h); }
+}
+.intro-cell {
+  animation:
+    intro-cell 600ms var(--viz-ease) var(--lag, 0ms) both,
+    intro-shuffle 1400ms ease-in-out 700ms;
+}
+/* The intro's beats and grid centre in a box an even number of pixels across, so the logo and the lines land on
+   whole pixels in an odd-sized window. */
+.intro-stage {
+  position: absolute; inset: 0 auto auto 0; display: grid; place-items: center;
+  width: 100%; height: 100%;
+  width: round(down, 100%, 2px); height: round(down, 100%, 2px);
+}
+/* The intro's paper: the chart's 4px grid with 16px majors, faint, laid from the centred 64px logo's top left so its
+   box and cells sit on the lines. */
+@keyframes intro-grid { from { opacity: 0; } }
+.intro-grid {
+  position: absolute; inset: 0; pointer-events: none;
+  --major: color-mix(in oklab, var(--color-fg) 3%, transparent);
+  --minor: color-mix(in oklab, var(--color-fg) 1.5%, transparent);
+  background-image:
+    linear-gradient(to right, var(--major) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--major) 1px, transparent 1px),
+    linear-gradient(to right, var(--minor) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--minor) 1px, transparent 1px);
+  background-size: 16px 16px, 16px 16px, 4px 4px, 4px 4px;
+  /* A percentage places a tile by (box - tile) x %, so each layer adds back half its tile: every line meets the logo's
+     top left at (50% - 32px). */
+  background-position:
+    calc(50% - 24px) calc(50% - 24px), calc(50% - 24px) calc(50% - 24px),
+    calc(50% - 30px) calc(50% - 30px), calc(50% - 30px) calc(50% - 30px);
+  animation: intro-grid 600ms var(--viz-ease) both;
+}
+/* A key: a face lit a little from above, its hairline, and 4px of side below it, darker than the face in either theme,
+   over a soft shadow. Pressed, the face sinks 3px onto its side. Each key presses once, at --press. */
+.intro-key {
+  --side: color-mix(in oklab, var(--color-surface-1), oklch(0 0 0) 30%);
+  display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radius-control);
+  color: var(--color-fg);
+  background: linear-gradient(to bottom, color-mix(in oklab, var(--color-surface-1), oklch(1 0 0) 8%), var(--color-surface-1));
+  box-shadow:
+    inset 0 0 0 1px var(--color-line),
+    0 4px 0 var(--side),
+    0 4px 0 1px var(--color-line),
+    0 8px 12px -4px oklch(0 0 0 / 0.3);
+  animation: intro-press 480ms var(--viz-ease) var(--press, 0ms) both;
+}
+@keyframes intro-press {
+  35%, 55% {
+    translate: 0 3px;
+    box-shadow:
+      inset 0 0 0 1px var(--color-line),
+      0 1px 0 var(--side),
+      0 1px 0 1px var(--color-line),
+      0 2px 4px -2px oklch(0 0 0 / 0.3);
+  }
+}
+@media (prefers-reduced-motion: reduce) { .intro-beat { --rise: 0px; } :is(.intro-cell, .intro-grid, .intro-key) { animation: none; } }
+:root[data-motion="reduce"] .intro-beat { --rise: 0px; }
+:root[data-motion="reduce"] :is(.intro-cell, .intro-grid, .intro-key) { animation: none; }
+
 /* The chart menu is a mega menu: one column per row of charts (--cols, up to 4), 2 then 1 on narrower screens.
    Hairline dividers sit between columns (and between wrapped rows), inside the popup's 4px padding like the
    separator, never out to its edge: 4px either side of each line. The line and its air sit outside a column's

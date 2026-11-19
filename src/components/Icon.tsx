@@ -1,5 +1,9 @@
 import type { ComponentType } from 'react'
+import { IconArrowDown } from 'central-icons/IconArrowDown'
+import { IconArrowLeft } from 'central-icons/IconArrowLeft'
+import { IconArrowRight } from 'central-icons/IconArrowRight'
 import { IconArrowRotateCounterClockwise } from 'central-icons/IconArrowRotateCounterClockwise'
+import { IconArrowUp } from 'central-icons/IconArrowUp'
 import { IconArrowUpRight } from 'central-icons/IconArrowUpRight'
 import { IconChart1 } from 'central-icons/IconChart1'
 import { IconChevronDownSmall } from 'central-icons/IconChevronDownSmall'
@@ -31,6 +35,10 @@ const CENTRAL = {
   'chevron-left': IconChevronLeft,
   'chevron-right': IconChevronRight,
   'arrow-up-right': IconArrowUpRight,
+  'arrow-left': IconArrowLeft,
+  'arrow-right': IconArrowRight,
+  'arrow-up': IconArrowUp,
+  'arrow-down': IconArrowDown,
   clock: IconClock,
   github: IconGithub,
 } satisfies Record<string, ComponentType<{ size?: number; className?: string }>>
