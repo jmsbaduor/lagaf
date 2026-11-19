@@ -12,6 +12,7 @@ const PAIRS = [
   ["Text on the page", "--color-fg", "--viz-paper", 4.5],
   ["Muted text on the page", "--color-fg-muted", "--viz-paper", 4.5],
   ["Mono labels on the page", "--viz-label", "--viz-paper", 4.5],
+  ["Muted text on a track", "--color-fg-muted", "--viz-track", 4.5],
   ["Text on a panel", "--viz-panel-ink", "--viz-panel", 4.5],
   ["Text on the inverse panel", "--viz-deep-ink", "--viz-deep", 4.5],
   ["Text on the lead colour", "--viz-lead-ink", "--viz-lead", 4.5],

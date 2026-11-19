@@ -5,7 +5,6 @@ import { band, CountUp, delay, Frame, Header, Key, Label, row, TOP, useReading }
 import { cn } from "@/lib/utils"
 
 import { FORMAT_LEAD, FORMATS, GAP } from "./data"
-import "./parts.css"
 
 // The ring is 576 across at the right of the content box (792 to 1368, TOP to 808, level with the rows) and 96
 // thick, so its hole is 384. Arcs have square ends, and d3 keeps the gap between them a constant 4px at every
@@ -82,7 +81,7 @@ export default function Formats() {
                 strokeWidth={THICK + 8}
                 pathLength={100}
                 transform="rotate(-90)"
-                className="parts-sweep"
+                className="viz-sweep"
                 style={{ ...delay(SWEEP_AT, SWEEP), "--sweep": FORMAT_LEAD } as CSSProperties}
               />
             </mask>

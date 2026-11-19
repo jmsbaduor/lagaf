@@ -52,7 +52,7 @@ For hand-written CSS, mix toward `var(--viz-ink)` or `var(--viz-paper)`. Text ne
 - One entrance, and it explains the data: a bar grows from its baseline, a rule draws, cells fill as the number counts, a pixel field wipes in a column at a time.
 - Nothing that is only read moves: the header, labels, notes, tracks and hatch are there from the start.
 - The whole entrance ends within about 1s. Marks start at 100ms, run 500 to 700ms, and stagger in shrinking steps (100, 160, 200, 230) so a list lands as one wave.
-- Use the kit's CSS classes (`viz-grow-x`, `viz-grow-y`, `viz-fade`, `viz-wipe`, `viz-draw`) timed by `delay()` or `wipe()`, or the parts that wrap them (`Rule`, `Fill`, `Cell`). They are CSS animations so the frame can finish them on the first click or key and the stage can slow them. A number is a `CountUp` with its mark's delay and duration; `countAt` starts each cell of a cascade as the count passes it.
+- Use the kit's CSS classes (`viz-grow-x`, `viz-grow-y`, `viz-fade`, `viz-wipe`, `viz-draw`, and `viz-sweep` for rings and dials) timed by `delay()` or `wipe()`, or the parts that wrap them (`Rule`, `Fill`, `Cell`). They are CSS animations so the frame can finish them on the first click or key and the stage can slow them. A number is a `CountUp` with its mark's delay and duration; `countAt` starts each cell of a cascade as the count passes it.
 - One curve, `--viz-ease`. No springs, no bounce, no loops.
 - Reduced motion lands on the end state at once. The kit handles it; don't add motion outside the kit's classes and `CountUp`.
 - Answers are transitions: 150ms for a reading, 200ms for a knob. Never reorder or remount a mark to answer a knob: that replays its entrance.

@@ -129,3 +129,15 @@
   animation-delay: 0ms !important;
   transition-duration: 1ms !important;
 }
+
+/* A ring or dial sweeping from its start to its share: a mask's stroke grows along a path of pathLength 100 to
+   --sweep. Used by the formats ring, the gauge and the time-saved clock. */
+@keyframes viz-sweep {
+  from {
+    stroke-dashoffset: var(--sweep);
+  }
+}
+.viz-sweep {
+  stroke-dasharray: var(--sweep) 100;
+  animation: viz-sweep var(--viz-dur, 700ms) var(--viz-ease) var(--viz-delay, 0ms) both;
+}

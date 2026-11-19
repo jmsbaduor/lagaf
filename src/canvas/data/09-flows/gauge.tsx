@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils"
 
 import { DIAL, dialAt } from "./data"
 // The formats ring's sweep: a mask's stroke grows round the ring to --sweep on the kit's curve.
-import "../05-parts/parts.css"
 
 // A half dial 960 across, centred on the content box (240 to 1200), its baseline at 760, 96 thick, so its bowl is
 // 768 across. Arcs have square ends, and d3 keeps the gap between lead and rest a constant 4px at every radius.
@@ -82,7 +81,7 @@ export default function Gauge() {
               strokeWidth={THICK + 8}
               pathLength={100}
               transform="rotate(180)"
-              className="parts-sweep"
+              className="viz-sweep"
               style={{ ...delay(SWEEP_AT, SWEEP), "--sweep": AFTER * 50 } as CSSProperties}
             />
           </mask>

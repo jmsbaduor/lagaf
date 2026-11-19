@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils"
 
 import { DOCS_SHARE, HOURS, MINUTES_EACH, QUESTIONS, SPLIT } from "./data"
 // The formats ring's sweep: a mask's stroke grows round the ring to --sweep on the kit's curve.
-import "../05-parts/parts.css"
 import "./flows.css"
 
 // A clock face 576 across at the right of the content box (792 to 1368, TOP to 808, level with the rows): 100
@@ -110,7 +109,7 @@ export default function TimeSaved() {
               strokeWidth={ARC_OUT - ARC_IN + 8}
               pathLength={100}
               transform="rotate(-90)"
-              className="parts-sweep"
+              className="viz-sweep"
               style={{ ...delay(SWEEP_AT, SWEEP), "--sweep": DOCS_SHARE } as CSSProperties}
             />
           </mask>

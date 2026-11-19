@@ -1,5 +1,5 @@
 /*
- * The one entrance in this row the kit and the formats sweep (05-parts/parts.css) don't cover: the time-saved hand
+ * The one entrance in this row the kit's classes (viz-sweep included) don't cover: the time-saved hand
  * turns clockwise from 12 o'clock to its end angle (its own `rotate`), on the sweep's curve and timing, so it rides
  * the front of the arc it marks. In an SVG whose viewBox is centred on the face, it turns about the centre.
  */
